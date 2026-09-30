@@ -291,7 +291,11 @@ function resetLoginForm() {
         btn.setAttribute('aria-label', 'Tampilkan password');
         btn.title = 'Tampilkan password';
     }
-    if (errEl) errEl.innerText = '';
+    if (errEl) { errEl.innerText = ''; errEl.dataset.kind = ''; }
+    _loginThemePicked = false; // login berikutnya wajib memilih tema lagi
+    const themeBox = document.getElementById('login-theme');
+    if (themeBox) themeBox.classList.remove('needs-pick');
+    if (typeof syncThemeExtras === 'function') syncThemeExtras();
 }
 
 function loginReduceMotion() {
@@ -308,6 +312,24 @@ function handleLogin(event) {
     const box = document.querySelector('#login-page .login-box');
     const btn = document.querySelector('#login-form .btn-login');
     if (btn && btn.disabled) return false; // sedang transisi masuk, cegah klik ganda
+
+    // Tema wajib dipilih dulu sebelum masuk
+    if (!_loginThemePicked) {
+        if (errEl) { errEl.innerText = 'Pilih tema tampilan terlebih dahulu.'; errEl.dataset.kind = 'theme'; }
+        const themeBox = document.getElementById('login-theme');
+        if (themeBox) {
+            themeBox.classList.add('needs-pick');
+            const firstCard = themeBox.querySelector('.login-theme-card');
+            if (firstCard) firstCard.focus();
+        }
+        if (box && box.animate && !loginReduceMotion()) {
+            box.animate(
+                [{ transform: 'translateX(0)' }, { transform: 'translateX(-9px)' }, { transform: 'translateX(8px)' }, { transform: 'translateX(-5px)' }, { transform: 'translateX(3px)' }, { transform: 'translateX(0)' }],
+                { duration: 420, easing: 'ease-in-out' }
+            );
+        }
+        return false;
+    }
 
     if (username === LOGIN_CREDENTIALS.username && password === LOGIN_CREDENTIALS.password) {
         _sessionMemory = true;
@@ -374,10 +396,94 @@ function handleGlobalSearch(event) {
 window.handleGlobalSearch = handleGlobalSearch;
 
 // ==========================================
-// TEMA TAMPILAN — 4 pilihan: light (Terang) · reference (Referensi) · dark (Gelap netral) · crystal (Kristal, kaca terang aksen biru)
+// TEMA TAMPILAN — 5 pilihan: light (Terang) · reference (Referensi) · dark (Gelap netral) · cartoon (Neoabstrak, garis tebal + bayangan keras) · minecraft (blok kotak-kotak)
+// Tema cartoon punya 6 palet warna (data-palette): kuning · pink · mint · lavender · oranye · gelap (Malam)
+// Tema minecraft punya 5 palet warna (data-mc-palette): rumput · langit · pasir · sakura · kayu
 // ==========================================
-const THEMES = ['light', 'reference', 'dark', 'crystal'];
-const DARK_THEMES = ['dark']; // crystal = tema terang
+const THEMES = ['light', 'reference', 'dark', 'cartoon', 'minecraft'];
+const DARK_THEMES = ['dark'];
+const CARTOON_PALETTES = ['kuning', 'pink', 'mint', 'lavender', 'oranye', 'gelap'];
+const PALETTE_NAMES = { kuning: 'Kuning', pink: 'Pink', mint: 'Mint', lavender: 'Lavender', oranye: 'Oranye', gelap: 'Malam' };
+const MC_PALETTES = ['rumput', 'langit', 'pasir', 'sakura', 'kayu'];
+const MC_PALETTE_NAMES = { rumput: 'Rumput', langit: 'Langit', pasir: 'Pasir', sakura: 'Sakura', kayu: 'Kayu' };
+let _loginThemePicked = false; // tema harus dipilih eksplisit setiap kali login
+
+// ---- Karakter & lanskap Minecraft di dalam tabel/diagram — CSS: bagian 11 styles.css ----
+function critterLane(mode, n) {
+    const S = (id, vb, cls, style) => '<span class="crit ' + cls + '" style="' + style + '"><svg class="stk stk-mc" viewBox="' + vb + '"><use href="#' + id + '"/></svg></span>';
+    const TREE = ['mc-tree', '0 0 12 12'], HOUSE = ['mc-house', '0 0 16 14'], BIRD = ['mc-bird', '0 0 8 4'];
+    const GOLEM = ['mc-golem', '0 0 14 16'], ZOMBIE = ['mc-zombie', '0 0 12 16'], DOLPHIN = ['mc-dolphin', '0 0 16 8'], FISH = ['mc-fish', '0 0 8 5'];
+    const ENDER = ['mc-enderman', '0 0 6 20'], PILLAR = ['mc-pillar', '0 0 6 16'];
+    const P = (base, mod, step) => base + ((n * step) % mod);
+    const bird = (y, dur, d) => S(BIRD[0], BIRD[1], 'fly', '--y:' + y + 'px;--dur:' + dur + 's;--delay:-' + d + 's');
+    let html = '';
+    if (mode === 'ocean') {
+        html = bird(6, 30, (n * 3) % 20)
+            + S(DOLPHIN[0], DOLPHIN[1], 'jump crit-dolphin', '--dur:20s;--arc:6s;--delay:-4s;--pk:-40px')
+            + S(DOLPHIN[0], DOLPHIN[1], 'jump crit-dolphin', '--dur:26s;--arc:8s;--delay:-15s;--pk:-44px')
+            + S(FISH[0], FISH[1], 'jump crit-fish', '--dur:12s;--arc:3.6s;--delay:-2s;--pk:-34px')
+            + S(FISH[0], FISH[1], 'jump crit-fish', '--dur:16s;--arc:4.4s;--delay:-9s;--pk:-38px')
+            + S(FISH[0], FISH[1], 'jump crit-fish', '--dur:14s;--arc:3.2s;--delay:-12s;--pk:-30px');
+    } else if (mode === 'end') {
+        // The End (latar putih): pilar obsidian + kristal, enderman ngeblink, naga mondar-mandir & menyemburkan api
+        html = S(PILLAR[0], PILLAR[1], 'crit-pillar', '--x:' + P(6, 8, 5) + '%')
+            + S(PILLAR[0], PILLAR[1], 'crit-pillar', '--x:' + P(46, 8, 3) + '%')
+            + S(PILLAR[0], PILLAR[1], 'crit-pillar', '--x:' + P(84, 6, 7) + '%')
+            + S(ENDER[0], ENDER[1], 'tp crit-enderman', '--x:20%;--x1:20%;--x2:30%;--x3:66%;--dur:9s;--delay:0s')
+            + S(ENDER[0], ENDER[1], 'tp crit-enderman', '--x:72%;--x1:72%;--x2:36%;--x3:24%;--dur:11s;--delay:-4s')
+            + '<span class="crit pace" style="--dur:22s;--delay:-' + ((n * 4) % 12) + 's"><i class="dragon-body crit-dragon">'
+            + '<svg class="stk stk-mc" viewBox="0 0 24 13"><use href="#mc-dragon-a"/></svg>'
+            + '<svg class="stk stk-mc" viewBox="0 0 24 13"><use href="#mc-dragon-b"/></svg>'
+            + '<svg class="dragon-fire" viewBox="0 0 14 6"><use href="#mc-flame"/></svg></i></span>';
+    } else {
+        html = S(TREE[0], TREE[1], 'crit-tree', '--x:' + P(3, 8, 7) + '%')
+            + S(HOUSE[0], HOUSE[1], 'crit-house', '--x:' + P(32, 14, 5) + '%')
+            + S(TREE[0], TREE[1], 'crit-tree sm', '--x:' + P(60, 8, 3) + '%')
+            + S(TREE[0], TREE[1], 'crit-tree', '--x:' + P(82, 8, 11) + '%')
+            + bird(6, 24, (n * 5) % 20) + bird(16, 34, 8 + ((n * 3) % 20));
+        if (mode === 'walk') {
+            html += S(GOLEM[0], GOLEM[1], 'walk', '--dur:34s;--delay:-6s') + S(ZOMBIE[0], ZOMBIE[1], 'walk', '--dur:26s;--delay:-15s');
+        } else if (mode === 'peek') {
+            html += S(GOLEM[0], GOLEM[1], 'peek', '--x:19%;--delay:0s') + S(ZOMBIE[0], ZOMBIE[1], 'peek', '--x:72%;--delay:-3s');
+        }
+    }
+    const el = document.createElement('div');
+    el.className = 'critter-lane' + (mode === 'ocean' ? ' ocean' : '') + (mode === 'end' ? ' end' : '');
+    el.setAttribute('aria-hidden', 'true');
+    el.innerHTML = html;
+    return el;
+}
+function initCritterLanes() {
+    if (document.querySelector('.critter-lane')) return;
+    let n = 0;
+    document.querySelectorAll('.page-view').forEach(function (pv) {
+        // Diagram: yang punya .chart-box = lanskap hutan/desa · yang donut (Komposisi Kas/Arus Kas) = biome air
+        pv.querySelectorAll('.chart-card').forEach(function (card) {
+            if (card.querySelector('.chart-box')) card.appendChild(critterLane('land', n++));
+            else if (card.querySelector('.donut-wrap')) { card.classList.add('has-ocean'); card.appendChild(critterLane('ocean', n++)); }
+        });
+        // Tabel: dashboard = biome naga (The End) · halaman Transaksi (tabel besar paling bawah) = biome laut
+        // · tabel lebar lain = golem & zombi nongol · tabel sempit (laporan/arsip/rekap) = lanskap saja
+        pv.querySelectorAll('.table-card').forEach(function (card) {
+            let mode = 'land';
+            if (pv.id === 'page-transaksi') { mode = 'ocean'; card.classList.add('has-ocean'); }
+            else if (pv.id === 'page-dashboard') { mode = 'end'; card.classList.add('has-end'); }
+            else if (!card.style.maxWidth) mode = 'peek';
+            card.appendChild(critterLane(mode, n++));
+        });
+    });
+}
+// Creeper yang meledak di popup pengingat (tampil hanya di tema Minecraft)
+const BOOM_DIRS = [[-70, -20], [-58, -44], [-36, -62], [-14, -74], [10, -70], [34, -60], [56, -42], [72, -18], [-48, -8], [50, -6], [-24, -34], [26, -30], [0, -46], [-4, -16]];
+const BOOM_COLORS = ['#ff3b1f', '#ff9f1c', '#ffe14a', '#2b2b2b', '#ffffff', '#5fb04a'];
+function ckBoomHtml() {
+    const parts = BOOM_DIRS.map(function (d, i) {
+        const s = [10, 14, 8][i % 3];
+        return '<i class="boom-p" style="--dx:' + d[0] + 'px;--dy:' + d[1] + 'px;width:' + s + 'px;height:' + s + 'px;background:' + BOOM_COLORS[i % 6] + '"></i>';
+    }).join('');
+    const smoke = [-24, 0, 24].map(function (dx) { return '<i class="boom-s" style="--dx:' + dx + 'px"></i>'; }).join('');
+    return '<div class="ck-toast-boom" aria-hidden="true"><i class="boom-flash"></i><span class="boom-creeper"><svg viewBox="0 0 12 16"><use href="#mc-creeper"/></svg></span>' + smoke + parts + '<b class="boom-text">BOOM!</b></div>';
+}
 
 function applyTheme(themeName) {
     if (THEMES.indexOf(themeName) === -1) themeName = 'light';
@@ -388,6 +494,77 @@ function applyTheme(themeName) {
         btn.classList.toggle('active', on);
         btn.setAttribute('aria-checked', on ? 'true' : 'false');
     });
+    syncThemeExtras();
+}
+
+function applyPalette(name) {
+    if (CARTOON_PALETTES.indexOf(name) === -1) name = 'kuning';
+    document.body.setAttribute('data-palette', name);
+    try { localStorage.setItem('cashflow_palette', name); } catch (e) { /* abaikan */ }
+    document.querySelectorAll('.palette-option[data-palette-value]').forEach(function (btn) {
+        const on = btn.dataset.paletteValue === name;
+        btn.classList.toggle('active', on);
+        btn.setAttribute('aria-checked', on ? 'true' : 'false');
+    });
+    ['login-palette-name', 'menu-palette-name'].forEach(function (id) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = PALETTE_NAMES[name];
+    });
+}
+
+function setPalette(name) {
+    applyPalette(name);
+    if (typeof refreshChartsTheme === 'function') refreshChartsTheme();
+}
+
+// Palet warna tema Minecraft (atribut data-mc-palette, terpisah dari palet Neoabstrak)
+function applyMcPalette(name) {
+    if (MC_PALETTES.indexOf(name) === -1) name = 'rumput';
+    document.body.setAttribute('data-mc-palette', name);
+    try { localStorage.setItem('cashflow_mc_palette', name); } catch (e) { /* abaikan */ }
+    document.querySelectorAll('.palette-option[data-mc-palette-value]').forEach(function (btn) {
+        const on = btn.dataset.mcPaletteValue === name;
+        btn.classList.toggle('active', on);
+        btn.setAttribute('aria-checked', on ? 'true' : 'false');
+    });
+    ['login-mc-palette-name', 'menu-mc-palette-name'].forEach(function (id) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = MC_PALETTE_NAMES[name];
+    });
+}
+
+function setMcPalette(name) {
+    applyMcPalette(name);
+    if (typeof refreshChartsTheme === 'function') refreshChartsTheme();
+}
+
+// Sinkronkan UI pemilih tema di login + baris palet (hanya tampil untuk tema Neoabstrak)
+function syncThemeExtras() {
+    const current = document.body.getAttribute('data-theme');
+    document.querySelectorAll('.login-theme-card').forEach(function (btn) {
+        const on = _loginThemePicked && btn.dataset.loginTheme === current;
+        btn.classList.toggle('active', on);
+        btn.setAttribute('aria-checked', on ? 'true' : 'false');
+    });
+    const loginPal = document.getElementById('login-palette');
+    if (loginPal) loginPal.hidden = !(_loginThemePicked && current === 'cartoon');
+    const menuPal = document.getElementById('theme-menu-palette');
+    if (menuPal) menuPal.hidden = current !== 'cartoon';
+    const loginMcPal = document.getElementById('login-mc-palette');
+    if (loginMcPal) loginMcPal.hidden = !(_loginThemePicked && current === 'minecraft');
+    const menuMcPal = document.getElementById('theme-menu-mc-palette');
+    if (menuMcPal) menuMcPal.hidden = current !== 'minecraft';
+}
+
+// Dipanggil saat user memilih tema di halaman login
+function pickLoginTheme(name) {
+    _loginThemePicked = true;
+    applyTheme(name);
+    const box = document.getElementById('login-theme');
+    if (box) box.classList.remove('needs-pick');
+    const errEl = document.getElementById('login-error');
+    if (errEl && errEl.dataset.kind === 'theme') { errEl.innerText = ''; errEl.dataset.kind = ''; }
+    if (typeof refreshChartsTheme === 'function') refreshChartsTheme();
 }
 
 function setTheme(themeName) {
@@ -430,7 +607,13 @@ function initTheme() {
     let saved = 'light';
     try { saved = localStorage.getItem('cashflow_theme') || 'light'; } catch (e) { /* abaikan */ }
     if (saved === 'dark-glass') saved = 'dark'; // migrasi nama tema lama
-    if (saved === 'midnight') saved = 'crystal'; // tema navy lama diganti Kristal
+    if (saved === 'midnight' || saved === 'crystal') saved = 'cartoon'; // tema navy/kristal lama diganti Kartun
+    let savedPalette = 'kuning';
+    try { savedPalette = localStorage.getItem('cashflow_palette') || 'kuning'; } catch (e) { /* abaikan */ }
+    applyPalette(savedPalette);
+    let savedMcPalette = 'rumput';
+    try { savedMcPalette = localStorage.getItem('cashflow_mc_palette') || 'rumput'; } catch (e) { /* abaikan */ }
+    applyMcPalette(savedMcPalette);
     applyTheme(saved);
 }
 
@@ -1678,8 +1861,14 @@ function hexToRgba(hex, alpha) {
     return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + alpha + ')';
 }
 
+// Radius sudut batang grafik: 0 (kotak) pada tema Minecraft
+function chartRadius(r) {
+    return document.body.getAttribute('data-theme') === 'minecraft' ? 0 : r;
+}
+
 function getChartThemeColors() {
-    const isDark = DARK_THEMES.indexOf(document.body.getAttribute('data-theme')) !== -1;
+    const isDark = DARK_THEMES.indexOf(document.body.getAttribute('data-theme')) !== -1
+        || (document.body.getAttribute('data-theme') === 'cartoon' && document.body.getAttribute('data-palette') === 'gelap');
     const c1 = cssVar('--chart-1', '#6c63ff');
     const c1Soft = cssVar('--chart-1-soft', '#c9c5ff');
     const c2 = cssVar('--chart-2', '#86d9a5');
@@ -1708,7 +1897,10 @@ function getChartThemeColors() {
         inC: cssVar('--chart-in', c1),
         in2C: cssVar('--chart-in-2', c2),
         outC: cssVar('--chart-out', cssVar('--danger', '#ef4444')),
-        empty: cssVar('--chart-empty', '#eceef2')
+        empty: cssVar('--chart-empty', '#eceef2'),
+        // Garis tepi batang/donut (tema Kartun); tema lain: 0 = tanpa garis
+        outline: cssVar('--chart-outline', 'transparent'),
+        outlineW: parseFloat(cssVar('--chart-outline-w', '0')) || 0
     };
 }
 
@@ -1815,7 +2007,9 @@ function buildTrendBarChart(canvasId, labels, seriesDefs) {
                     label: d.label,
                     data: d.data,
                     backgroundColor: d.top,
-                    borderRadius: padat ? 3 : 5,
+                    borderColor: t.outline,
+                    borderWidth: t.outlineW ? (padat ? Math.min(t.outlineW, 1.5) : t.outlineW) : 0,
+                    borderRadius: chartRadius(padat ? 3 : 5),
                     borderSkipped: false,
                     maxBarThickness: padat ? 14 : (jml > 2 ? 30 : 44),
                     categoryPercentage: padat ? 0.9 : 0.72,
@@ -1934,8 +2128,9 @@ function renderDonutKomposisi(totalIn, totalOut) {
             datasets: [{
                 data: adaData ? values : [1],
                 backgroundColor: adaData ? [t.in2C, t.inC, t.outC] : [t.empty],
-                borderWidth: 0,
-                borderRadius: adaData ? 6 : 0,
+                borderColor: t.outline,
+                borderWidth: adaData ? t.outlineW : 0,
+                borderRadius: chartRadius(adaData ? 6 : 0),
                 spacing: adaData ? 3 : 0
             }]
         },
@@ -2061,9 +2256,9 @@ function renderSingleCategoryChart(type, dataList, selectedCategory, canvasId, t
                 label: `Total ${type}`,
                 data: values,
                 backgroundColor: fillStyle,
-                borderColor: colorTheme,
-                borderWidth: isBar ? 0 : 2,
-                borderRadius: isBar ? 5 : 0,
+                borderColor: (isBar && themeColors.outlineW) ? themeColors.outline : colorTheme,
+                borderWidth: isBar ? themeColors.outlineW : 2,
+                borderRadius: chartRadius(isBar ? 5 : 0),
                 borderSkipped: false,
                 maxBarThickness: 34,
                 categoryPercentage: 0.78,
@@ -2358,8 +2553,9 @@ function renderCashflowDonut(data) {
             datasets: [{
                 data: adaData ? values : [1],
                 backgroundColor: adaData ? [t.inC, t.in2C, t.outC] : [t.empty],
-                borderWidth: 0,
-                borderRadius: adaData ? 6 : 0,
+                borderColor: t.outline,
+                borderWidth: adaData ? t.outlineW : 0,
+                borderRadius: chartRadius(adaData ? 6 : 0),
                 spacing: adaData ? 3 : 0
             }]
         },
@@ -4212,6 +4408,9 @@ window.handleLogout = handleLogout;
 window.handleParentMenuClick = handleParentMenuClick;
 window.cycleTheme = cycleTheme;
 window.setTheme = setTheme;
+window.pickLoginTheme = pickLoginTheme;
+window.setPalette = setPalette;
+window.setMcPalette = setMcPalette;
 window.toggleThemeMenu = toggleThemeMenu;
 
 
@@ -4280,7 +4479,7 @@ function ckShowToast(alerts) {
                 '<span class="ck-toast-title">' + alerts.length + ' pengingat jatuh tempo</span>' +
                 '<button type="button" class="ck-toast-close" aria-label="Tutup pengingat">&times;</button>' +
             '</div>' +
-            '<div class="ck-toast-list">' + rows + '</div>' + more +
+            '<div class="ck-toast-list">' + rows + '</div>' + more + ckBoomHtml() +
         '</div>';
 
     const toast = root.firstElementChild;
@@ -4353,6 +4552,7 @@ function initLoginLiquid() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+    initCritterLanes();
     initTheme();
     initLoginLiquid();
     initCeklisToast();
