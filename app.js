@@ -133,6 +133,7 @@ async function fetchData() {
         populateCategoryDropdown();
         renderAllViews();
         renderSheetPengeluaranALL(globalOutAll);
+        refreshCashflowViews();
         sudahRenderDariCache = true;
         console.log("Data cache ditampilkan dulu, mengambil data terbaru di belakang layar...");
     }
@@ -261,21 +262,81 @@ function showLogin() {
     const appShell = document.getElementById('app-shell');
     if (loginPage) loginPage.style.display = 'flex';
     if (appShell) appShell.classList.remove('app-visible');
+    resetLoginForm();
+}
+
+// Tampilkan / sembunyikan password (ikon mata di kolom password)
+function togglePasswordVisibility() {
+    const input = document.getElementById('login-password');
+    const btn = document.getElementById('btn-toggle-password');
+    if (!input || !btn) return;
+    const tampil = input.type === 'password';
+    input.type = tampil ? 'text' : 'password';
+    btn.classList.toggle('is-visible', tampil);
+    btn.setAttribute('aria-pressed', tampil ? 'true' : 'false');
+    btn.setAttribute('aria-label', tampil ? 'Sembunyikan password' : 'Tampilkan password');
+    btn.title = tampil ? 'Sembunyikan password' : 'Tampilkan password';
+    input.focus();
+}
+
+// Kembalikan form login ke keadaan awal (dipanggil saat halaman login ditampilkan lagi)
+function resetLoginForm() {
+    const input = document.getElementById('login-password');
+    const btn = document.getElementById('btn-toggle-password');
+    const errEl = document.getElementById('login-error');
+    if (input) { input.type = 'password'; input.value = ''; }
+    if (btn) {
+        btn.classList.remove('is-visible');
+        btn.setAttribute('aria-pressed', 'false');
+        btn.setAttribute('aria-label', 'Tampilkan password');
+        btn.title = 'Tampilkan password';
+    }
+    if (errEl) errEl.innerText = '';
+}
+
+function loginReduceMotion() {
+    return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 }
 
 function handleLogin(event) {
     if (event) event.preventDefault();
-    const username = (document.getElementById('login-username').value || '').trim();
-    const password = document.getElementById('login-password').value || '';
+    const usernameEl = document.getElementById('login-username');
+    const passwordEl = document.getElementById('login-password');
+    const username = (usernameEl.value || '').trim();
+    const password = passwordEl.value || '';
     const errEl = document.getElementById('login-error');
+    const box = document.querySelector('#login-page .login-box');
+    const btn = document.querySelector('#login-form .btn-login');
+    if (btn && btn.disabled) return false; // sedang transisi masuk, cegah klik ganda
 
     if (username === LOGIN_CREDENTIALS.username && password === LOGIN_CREDENTIALS.password) {
         _sessionMemory = true;
         safeStorageSet('cashflow_logged_in', 'true');
         if (errEl) errEl.innerText = '';
-        showApp();
+
+        const selesai = function () { showApp(); resetLoginForm(); if (btn) btn.disabled = false; };
+        if (box && box.animate && !loginReduceMotion()) {
+            // Kartu login menguap ke atas sebentar sebelum dashboard tampil
+            if (btn) btn.disabled = true;
+            const anim = box.animate(
+                [{ opacity: 1, transform: 'translateY(0) scale(1, 1)' }, { opacity: 0, transform: 'translateY(-14px) scale(0.96, 1.04)' }],
+                { duration: 300, easing: 'ease-in', fill: 'forwards' }
+            );
+            anim.onfinish = function () { selesai(); anim.cancel(); };
+        } else {
+            selesai();
+        }
     } else {
         if (errEl) errEl.innerText = 'Username atau password salah.';
+        // Kartu bergetar sebagai penanda salah (Web Animations API, tidak bentrok dengan animasi CSS)
+        if (box && box.animate && !loginReduceMotion()) {
+            box.animate(
+                [{ transform: 'translateX(0)' }, { transform: 'translateX(-9px)' }, { transform: 'translateX(8px)' }, { transform: 'translateX(-5px)' }, { transform: 'translateX(3px)' }, { transform: 'translateX(0)' }],
+                { duration: 420, easing: 'ease-in-out' }
+            );
+        }
+        passwordEl.focus();
+        passwordEl.select();
     }
     return false;
 }
@@ -313,9 +374,10 @@ function handleGlobalSearch(event) {
 window.handleGlobalSearch = handleGlobalSearch;
 
 // ==========================================
-// TEMA TAMPILAN — 3 pilihan: light (Terang) · reference (Referensi) · dark (Gelap doff)
+// TEMA TAMPILAN — 4 pilihan: light (Terang) · reference (Referensi) · dark (Gelap netral) · crystal (Kristal, kaca terang aksen biru)
 // ==========================================
-const THEMES = ['light', 'reference', 'dark'];
+const THEMES = ['light', 'reference', 'dark', 'crystal'];
+const DARK_THEMES = ['dark']; // crystal = tema terang
 
 function applyTheme(themeName) {
     if (THEMES.indexOf(themeName) === -1) themeName = 'light';
@@ -368,6 +430,7 @@ function initTheme() {
     let saved = 'light';
     try { saved = localStorage.getItem('cashflow_theme') || 'light'; } catch (e) { /* abaikan */ }
     if (saved === 'dark-glass') saved = 'dark'; // migrasi nama tema lama
+    if (saved === 'midnight') saved = 'crystal'; // tema navy lama diganti Kristal
     applyTheme(saved);
 }
 
@@ -546,8 +609,8 @@ function renderRecentTransactions(inList, outList) {
             <tr>
                 <td>${formatTanggalClean(item["Tanggal"] || item["tgl"] || item["TANGGAL"] || "-")}</td>
                 <td><span class="badge-tag ${tagClass}">${item._type}</span></td>
-                <td class="td-category">${getCategory(item, item._type)}</td>
-                <td>${keterangan}</td>
+                <td class="td-category" title="${escHtml(getCategory(item, item._type))}">${getCategory(item, item._type)}</td>
+                <td title="${escHtml(keterangan)}">${keterangan}</td>
                 <td class="text-right ${amtClass}"><strong>${sign}${formatIDR(val)}</strong></td>
             </tr>
         `;
@@ -771,57 +834,133 @@ async function salinRekapBankKeWA() {
     }
 }
 
-function renderCashflowDashboard() {
-    const paid = getPaidMasterEntries();
-    let totalNominal = 0, nominalCash = 0, nominalTransfer = 0;
+const NAMA_BULAN_PANJANG = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+const KEYS_TGL_BAYAR = ["tanggalBayar", "Tanggal Bayar", "Tanggal Pembayaran"];
 
-    paid.forEach(item => {
+// Sumber pengeluaran untuk mode Cashflow: HANYA tab/sheet "Pengeluaran ALL" (globalOutAll) —
+// sama persis dengan halaman Pengeluaran ALL & Laporan Cashflow. Pengeluaran kas (globalOut) tidak dipakai.
+function getPengeluaranCashflowEntries() {
+    const src = globalOutAll || [];
+    const hasil = [];
+    src.forEach(item => {
+        const rawTgl = getValueByKeys(item, ["Tanggal", "tanggal", "TANGGAL", "Tgl", "tgl"]) || item[0] || "";
+        const d = parseToDateObjPengeluaranALL(rawTgl);
+        if (!d || isNaN(d.getTime())) return;
+
+        let rawNominal = getValueByKeys(item, ["Nominal", "nominal", "NOMINAL", "Jumlah", "jumlah", "JUMLAH", "Total", "total", "Pengeluaran", "pengeluaran", "Debet", "debet", "Kredit", "kredit"]);
+        if ((rawNominal === "" || rawNominal === undefined || rawNominal === null) && typeof getNominal === 'function') {
+            rawNominal = getNominal(item);
+        }
+        const nominal = typeof cleanToNumber === 'function' ? cleanToNumber(rawNominal) : (Number(rawNominal) || 0);
+        const kategori = getValueByKeys(item, ["Kategori", "kategori", "KATEGORI", "Kategori Pengeluaran", "Jenis", "Jenis Pengeluaran"]) || item[1] || "Lain-lain";
+        let keterangan = getValueByKeys(item, [
+            "Keterangan", "keterangan", "KETERANGAN", "Catatan", "catatan", "CATATAN",
+            "Keterangan/Catatan", "Keterangan / Catatan", "Uraian", "uraian", "Rincian", "Detail", "Deskripsi"
+        ]);
+        if (!keterangan || keterangan === "-") keterangan = item[4] || item[5] || item[6] || "";
+        hasil.push({ d, tgl: rawTgl, nominal, kategori, keterangan });
+    });
+    return hasil;
+}
+
+function getCashflowSelectedMonth() {
+    const el = document.getElementById('filter-bulan-cashflow-chart');
+    let v = el && el.value ? el.value : '';
+    if (!v) {
+        const now = new Date();
+        v = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+    }
+    const [y, m] = v.split('-').map(Number);
+    return { y, m };
+}
+
+// Satu sumber data untuk seluruh dashboard Cashflow: pemasukan (pembayaran pelanggan) dan
+// pengeluaran, dua-duanya dipotong ke bulan yang dipilih di filter (default: bulan ini).
+function getCashflowDashboardData() {
+    const allPaid = getPaidMasterEntries();
+    const allOut = getPengeluaranCashflowEntries();
+    sesuaikanBulanCashflow(allPaid, allOut);
+    const { y, m } = getCashflowSelectedMonth();
+    const inMonth = d => d && !isNaN(d.getTime()) && d.getFullYear() === y && (d.getMonth() + 1) === m;
+
+    const paid = [];
+    let cash = 0, transfer = 0;
+    allPaid.forEach(item => {
+        const tgl = getValueByKeys(item, KEYS_TGL_BAYAR);
+        const d = tgl ? parseToDateObj(tgl) : null;
+        if (!inMonth(d)) return;
         const nominal = typeof getNominalMasterPelanggan === "function" ? getNominalMasterPelanggan(item) : 0;
-        const metode = getValueByKeys(item, ["metode", "Metode Bayar", "Metode", "METODE"]);
-        totalNominal += nominal;
-        if (isMetodeCash(metode)) nominalCash += nominal; else nominalTransfer += nominal;
+        const metode = getValueByKeys(item, ["metode", "Metode Bayar", "Metode", "METODE"]) || "";
+        const isCash = isMetodeCash(metode);
+        if (isCash) cash += nominal; else transfer += nominal;
+        paid.push({ item, d, tgl, nominal, metode, isCash });
     });
 
-    const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-    setText('cf-stat-total-transaksi', paid.length.toLocaleString('id-ID'));
-    setText('cf-stat-total-nominal', formatIDR(totalNominal));
-    setText('cf-stat-nominal-cash', formatIDR(nominalCash));
-    setText('cf-stat-nominal-transfer', formatIDR(nominalTransfer));
+    const keluar = allOut.filter(e => inMonth(e.d));
+    const totalKeluar = keluar.reduce((sum, e) => sum + e.nominal, 0);
+    const totalMasuk = cash + transfer;
+    return { y, m, paid, keluar, cash, transfer, totalMasuk, totalKeluar, saldo: totalMasuk - totalKeluar };
+}
 
-    renderCashflowDashboardChart(paid);
+function renderCashflowDashboard() {
+    const data = getCashflowDashboardData();
+
+    const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    setText('cf-stat-pemasukan', formatIDR(data.totalMasuk));
+    setText('cf-stat-pemasukan-desc', data.paid.length.toLocaleString('id-ID') + ' pembayaran');
+    setText('cf-stat-pengeluaran', formatIDR(data.totalKeluar));
+    setText('cf-stat-pengeluaran-desc', (!globalOutAll || globalOutAll.length === 0)
+        ? 'Data Pengeluaran ALL belum termuat'
+        : data.keluar.length.toLocaleString('id-ID') + ' transaksi · Pengeluaran ALL');
+    setText('cf-stat-saldo', formatIDR(data.saldo));
+    setText('cf-stat-nominal-cash', formatIDR(data.cash));
+    setText('cf-stat-nominal-transfer', formatIDR(data.transfer));
+    setText('cf-periode-label', 'Pemasukan vs pengeluaran · ' + NAMA_BULAN_PANJANG[data.m - 1] + ' ' + data.y);
+
+    renderCashflowDashboardChart(data);
 
     const tbody = document.getElementById('tbody-cashflow-dashboard');
     if (!tbody) return;
 
-    const sorted = paid
-        .map(item => ({ item, d: parseToDateObj(getValueByKeys(item, ["tanggalBayar", "Tanggal Bayar", "Tanggal Pembayaran"])) }))
-        .sort((a, b) => (b.d ? b.d.getTime() : 0) - (a.d ? a.d.getTime() : 0))
-        .slice(0, 10)
-        .map(x => x.item);
+    // Gabungkan pembayaran masuk + pengeluaran, ambil 5 terbaru
+    const gabungan = [
+        ...data.paid.map(p => ({ jenis: 'masuk', d: p.d, tgl: p.tgl, nominal: p.nominal, p })),
+        ...data.keluar.map(e => ({ jenis: 'keluar', d: e.d, tgl: e.tgl, nominal: e.nominal, e }))
+    ].sort((a, b) => b.d.getTime() - a.d.getTime()).slice(0, 5);
 
-    if (sorted.length === 0) {
-        const dataBelumMasuk = !globalMasterData || globalMasterData.length === 0;
+    if (gabungan.length === 0) {
+        const dataBelumMasuk = (!globalMasterData || globalMasterData.length === 0) && data.keluar.length === 0;
         tbody.innerHTML = `<tr><td colspan="5" class="text-center">${dataBelumMasuk
-            ? 'Data pelanggan belum termuat dari server. Tunggu sebentar atau muat ulang halaman (Ctrl+F5).'
-            : 'Belum ada pelanggan yang tercatat sudah membayar'}</td></tr>`;
+            ? 'Data belum termuat dari server. Tunggu sebentar atau muat ulang halaman (Ctrl+F5).'
+            : 'Belum ada pembayaran maupun pengeluaran di bulan ini'}</td></tr>`;
         return;
     }
 
-    tbody.innerHTML = sorted.map(item => {
-        const nama = getValueByKeys(item, ["nama", "Nama Pelanggan", "Nama", "NAMA"]) || "Tanpa Nama";
-        const area = getValueByKeys(item, ["area", "Area", "_sheetName", "AREA"]) || "-";
-        const metode = getValueByKeys(item, ["metode", "Metode Bayar", "Metode"]) || "-";
-        const tgl = getValueByKeys(item, ["tanggalBayar", "Tanggal Bayar", "Tanggal Pembayaran"]) || "-";
-        const nominal = typeof getNominalMasterPelanggan === "function" ? getNominalMasterPelanggan(item) : 0;
+    tbody.innerHTML = gabungan.map(row => {
+        if (row.jenis === 'masuk') {
+            const it = row.p.item;
+            const nama = getValueByKeys(it, ["nama", "Nama Pelanggan", "Nama", "NAMA"]) || "Tanpa Nama";
+            const area = getValueByKeys(it, ["area", "Area", "_sheetName", "AREA"]) || "-";
+            const metode = row.p.metode || "-";
+            return `
+            <tr>
+                <td>${formatTanggalClean(row.tgl || "-")}</td>
+                <td><span class="badge-tag ${row.p.isCash ? 'tag-in' : 'tag-transfer'}">${escHtml(row.p.isCash ? 'Cash' : (metode !== '-' ? metode : 'Transfer'))}</span></td>
+                <td title="${escHtml(nama)}"><strong>${escHtml(nama)}</strong></td>
+                <td title="${escHtml(area)}">${escHtml(area)}</td>
+                <td class="text-right amount-in"><strong>+${formatIDR(row.nominal)}</strong></td>
+            </tr>`;
+        }
+        const e = row.e;
+        const ket = e.keterangan && String(e.keterangan).trim() !== '' && String(e.keterangan).trim() !== '-' ? e.keterangan : e.kategori;
         return `
             <tr>
-                <td>${formatTanggalClean(tgl)}</td>
-                <td><strong>${nama}</strong></td>
-                <td>${area}</td>
-                <td><span class="badge-tag ${isMetodeCash(metode) ? 'tag-in' : 'tag-transfer'}">${metode}</span></td>
-                <td class="text-right"><strong>${formatIDR(nominal)}</strong></td>
-            </tr>
-        `;
+                <td>${formatTanggalClean(row.tgl || "-")}</td>
+                <td><span class="badge-tag tag-out">Pengeluaran</span></td>
+                <td title="${escHtml(ket)}"><strong>${escHtml(ket)}</strong></td>
+                <td title="${escHtml(e.kategori)}">${escHtml(e.kategori)}</td>
+                <td class="text-right amount-out"><strong>-${formatIDR(row.nominal)}</strong></td>
+            </tr>`;
     }).join("");
 }
 
@@ -1519,8 +1658,8 @@ function resetFilterPengeluaranALL() {
 // 7. CHARTS & CATEGORY VIEWS
 // ==========================================
 function renderCategoryCharts() {
-    renderSingleCategoryChart('Pemasukan', globalIn, selectedKatIn, 'chartKatPemasukan', 'title-kat-pemasukan', 'sub-kat-pemasukan', getChartThemeColors().brand);
-    renderSingleCategoryChart('Pengeluaran', globalOut, selectedKatOut, 'chartKatPengeluaran', 'title-kat-pengeluaran', 'sub-kat-pengeluaran', getChartThemeColors().danger);
+    renderSingleCategoryChart('Pemasukan', globalIn, selectedKatIn, 'chartKatPemasukan', 'title-kat-pemasukan', 'sub-kat-pemasukan', getChartThemeColors().inC);
+    renderSingleCategoryChart('Pengeluaran', globalOut, selectedKatOut, 'chartKatPengeluaran', 'title-kat-pengeluaran', 'sub-kat-pengeluaran', getChartThemeColors().outC);
 }
 
 if (window.Chart) { Chart.defaults.font.family = "'Inter', -apple-system, BlinkMacSystemFont, sans-serif"; }
@@ -1540,27 +1679,35 @@ function hexToRgba(hex, alpha) {
 }
 
 function getChartThemeColors() {
-    const isDark = document.body.getAttribute('data-theme') === 'dark';
+    const isDark = DARK_THEMES.indexOf(document.body.getAttribute('data-theme')) !== -1;
     const c1 = cssVar('--chart-1', '#6c63ff');
     const c1Soft = cssVar('--chart-1-soft', '#c9c5ff');
     const c2 = cssVar('--chart-2', '#86d9a5');
+    // Ujung bawah batang: warna yang sama, dibuat lebih pudar (gradasi seperti referensi)
+    const fade = function (c) { return hexToRgba(c, isDark ? 0.45 : 0.6); };
     return {
         isDark: isDark,
         text: cssVar('--text-secondary', '#6b7280'),
         grid: cssVar('--chart-grid', 'rgba(15,23,42,0.05)'),
-        tipBg: cssVar('--surface', '#ffffff'),
+        tipBg: cssVar('--tooltip-bg', cssVar('--surface', '#ffffff')),
         tipText: cssVar('--text-primary', '#202124'),
         tipBorder: cssVar('--border', '#e8eaed'),
         // Batang datar (tanpa gradasi): seri 1 = aksen, seri 2 = hijau lembut, seri 3 = abu
         c1Top: c1,
-        c1Bottom: c1,
+        c1Bottom: fade(c1),
         c2Top: c2,
-        c2Bottom: c2,
+        c2Bottom: fade(c2),
+        fade: fade,
+        track: cssVar('--chart-track', isDark ? '#1d1d1f' : '#f1f2f6'),
         c3: cssVar('--chart-3', '#d3d7e0'),
         c1Soft: c1Soft,
         brand: c1,
         spark: cssVar('--chart-spark', c1),
         danger: cssVar('--danger', '#ef4444'),
+        // Seri dashboard: masuk / masuk-2 / keluar (token tema)
+        inC: cssVar('--chart-in', c1),
+        in2C: cssVar('--chart-in-2', c2),
+        outC: cssVar('--chart-out', cssVar('--danger', '#ef4444')),
         empty: cssVar('--chart-empty', '#eceef2')
     };
 }
@@ -1588,10 +1735,77 @@ function makeBarGradient(top, bottom) {
 }
 
 // Grafik batang bergradasi, sudut membulat — dipakai Dashboard (Cash) & Dashboard (Cashflow)
+// Gradasi per-batang: atas = warna penuh, bawah = pudar (mengikuti tinggi tiap batang)
+function makeBarGradientPerBar(top, bottom) {
+    return function (context) {
+        const chart = context.chart;
+        const el = context.element;
+        if (!el || !chart.chartArea) return top;
+        const p = el.getProps(['y', 'base'], true);
+        const y1 = Math.min(p.y, p.base), y2 = Math.max(p.y, p.base);
+        if (!isFinite(y1) || !isFinite(y2) || y2 - y1 < 1) return top;
+        const g = chart.ctx.createLinearGradient(0, y1, 0, y2);
+        g.addColorStop(0, top);
+        g.addColorStop(1, bottom);
+        return g;
+    };
+}
+
+// Latar "track" abu setinggi area plot di belakang tiap batang/kelompok batang (bentuk pil)
+const ckBarTrackPlugin = {
+    id: 'ckBarTrack',
+    beforeDatasetsDraw: function (chart, args, opts) {
+        if (!opts || opts.enabled === false || !chart.chartArea) return;
+        const area = chart.chartArea;
+        const metas = [];
+        chart.data.datasets.forEach(function (_, i) {
+            if (chart.isDatasetVisible(i)) metas.push(chart.getDatasetMeta(i));
+        });
+        if (!metas.length) return;
+        const ctx = chart.ctx;
+        const pad = metas.length > 1 ? (opts.pad != null ? opts.pad : 4) : 0;
+        const maxR = opts.radius != null ? opts.radius : 18;
+        const count = (chart.data.labels || []).length;
+        ctx.save();
+        ctx.fillStyle = opts.color || 'rgba(0,0,0,0.05)';
+        for (let i = 0; i < count; i++) {
+            let left = Infinity, right = -Infinity;
+            metas.forEach(function (m) {
+                const bar = m.data[i];
+                if (!bar) return;
+                const p = bar.getProps(['x', 'width'], true);
+                if (!isFinite(p.x) || !isFinite(p.width)) return;
+                left = Math.min(left, p.x - p.width / 2);
+                right = Math.max(right, p.x + p.width / 2);
+            });
+            if (!isFinite(left)) continue;
+            const x = left - pad, w = right - left + pad * 2;
+            const y = area.top, h = area.bottom - area.top;
+            const r = Math.max(0, Math.min(w / 2, maxR, h / 2));
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.lineTo(x + w - r, y);
+            ctx.arcTo(x + w, y, x + w, y + r, r);
+            ctx.lineTo(x + w, y + h - r);
+            ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+            ctx.lineTo(x + r, y + h);
+            ctx.arcTo(x, y + h, x, y + h - r, r);
+            ctx.lineTo(x, y + r);
+            ctx.arcTo(x, y, x + r, y, r);
+            ctx.closePath();
+            ctx.fill();
+        }
+        ctx.restore();
+    }
+};
+
 function buildTrendBarChart(canvasId, labels, seriesDefs) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return null;
     const t = getChartThemeColors();
+    // Mode Harian (banyak batang): tanpa latar pil, batang lebih tipis & sudut lebih kecil
+    const padat = labels.length > 8;
+    const jml = seriesDefs.length;
     return new Chart(canvas.getContext('2d'), {
         type: 'bar',
         data: {
@@ -1600,20 +1814,22 @@ function buildTrendBarChart(canvasId, labels, seriesDefs) {
                 return {
                     label: d.label,
                     data: d.data,
-                    backgroundColor: makeBarGradient(d.top, d.bottom),
-                    borderRadius: 4,
+                    backgroundColor: d.top,
+                    borderRadius: padat ? 3 : 5,
                     borderSkipped: false,
-                    maxBarThickness: 28,
-                    categoryPercentage: 0.7,
-                    barPercentage: 0.9
+                    maxBarThickness: padat ? 14 : (jml > 2 ? 30 : 44),
+                    categoryPercentage: padat ? 0.9 : 0.72,
+                    barPercentage: padat ? 0.85 : 0.9
                 };
             })
         },
+        plugins: [ckBarTrackPlugin],
         options: {
             responsive: true,
             maintainAspectRatio: false,
             interaction: { mode: 'index', intersect: false },
             plugins: {
+                ckBarTrack: { enabled: false },
                 legend: {
                     position: 'top',
                     align: 'end',
@@ -1632,16 +1848,19 @@ function buildTrendBarChart(canvasId, labels, seriesDefs) {
                     usePointStyle: true,
                     titleFont: { size: 11.5, weight: '600' },
                     bodyFont: { size: 11.5 },
-                    callbacks: { label: function (c) { return c.dataset.label + ': ' + formatIDR(c.parsed.y); } }
+                    callbacks: {
+                        label: function (c) { return c.dataset.label + ': ' + formatIDR(c.parsed.y); },
+                        labelColor: function (c) { return { borderColor: 'transparent', backgroundColor: seriesDefs[c.datasetIndex].top }; }
+                    }
                 }
             },
             scales: {
-                x: { ticks: { color: t.text, font: { size: 11 } }, grid: { display: false }, border: { display: false } },
+                x: { ticks: { color: t.text, font: { size: 10.5 }, padding: 8, maxRotation: 0, autoSkip: true, autoSkipPadding: 8 }, grid: { display: false }, border: { display: false } },
                 y: {
                     beginAtZero: true,
-                    ticks: { color: t.text, font: { size: 11 }, callback: function (v) { return formatCompactIDR(v); } },
-                    grid: { color: t.grid, drawTicks: false },
-                    border: { display: false }
+                    ticks: { color: t.text, font: { size: 10.5 }, padding: 8, callback: function (v) { return formatCompactIDR(v); } },
+                    grid: { color: t.grid, drawTicks: false, borderDash: [4, 4] },
+                    border: { display: false, dash: [4, 4] }
                 }
             }
         }
@@ -1714,7 +1933,7 @@ function renderDonutKomposisi(totalIn, totalOut) {
             labels: ['Ter-setor', 'Cash kantor', 'Pengeluaran'],
             datasets: [{
                 data: adaData ? values : [1],
-                backgroundColor: adaData ? [t.c1Top, t.c2Top, t.c3] : [t.empty],
+                backgroundColor: adaData ? [t.in2C, t.inC, t.outC] : [t.empty],
                 borderWidth: 0,
                 borderRadius: adaData ? 6 : 0,
                 spacing: adaData ? 3 : 0
@@ -1778,7 +1997,7 @@ function refreshChartsTheme() {
         renderDashboardChart(globalIn || [], globalOut || []);
     }
     if (typeof renderCashflowDashboardChart === 'function' && chartCashflowTrendInstance) {
-        renderCashflowDashboardChart(getPaidMasterEntries());
+        renderCashflowDashboardChart();
     }
     if (typeof renderCategoryViews === 'function') renderCategoryViews();
 }
@@ -1825,10 +2044,7 @@ function renderSingleCategoryChart(type, dataList, selectedCategory, canvasId, t
     const themeColors = getChartThemeColors();
     const isBar = selectedCategory === 'ALL';
 
-    const gradBar = ctx.createLinearGradient(0, 0, 0, 230);
-    gradBar.addColorStop(0, colorTheme + 'cc');
-    gradBar.addColorStop(1, colorTheme + '80');
-    let fillStyle = gradBar;
+    let fillStyle = colorTheme; // batang solid
     if (!isBar) {
         const gradientCat = ctx.createLinearGradient(0, 0, 0, 230);
         gradientCat.addColorStop(0, colorTheme + '26');
@@ -1838,6 +2054,7 @@ function renderSingleCategoryChart(type, dataList, selectedCategory, canvasId, t
 
     const newChart = new Chart(ctx, {
         type: isBar ? 'bar' : 'line',
+        plugins: isBar ? [ckBarTrackPlugin] : [],
         data: {
             labels: labels,
             datasets: [{
@@ -1846,9 +2063,11 @@ function renderSingleCategoryChart(type, dataList, selectedCategory, canvasId, t
                 backgroundColor: fillStyle,
                 borderColor: colorTheme,
                 borderWidth: isBar ? 0 : 2,
-                borderRadius: isBar ? 4 : 0,
+                borderRadius: isBar ? 5 : 0,
                 borderSkipped: false,
-                maxBarThickness: 28,
+                maxBarThickness: 34,
+                categoryPercentage: 0.78,
+                barPercentage: 0.92,
                 fill: !isBar,
                 tension: 0.45,
                 pointRadius: 0,
@@ -1863,6 +2082,7 @@ function renderSingleCategoryChart(type, dataList, selectedCategory, canvasId, t
             maintainAspectRatio: false,
             interaction: { mode: 'index', intersect: false },
             plugins: {
+                ckBarTrack: { enabled: false },
                 legend: { display: false },
                 tooltip: {
                     backgroundColor: themeColors.tipBg,
@@ -1888,9 +2108,9 @@ function renderSingleCategoryChart(type, dataList, selectedCategory, canvasId, t
                 },
                 y: {
                     beginAtZero: true,
-                    ticks: { callback: value => formatCompactIDR(value), color: themeColors.text, font: { size: 11 } },
-                    grid: { color: themeColors.grid, drawTicks: false },
-                    border: { display: false }
+                    ticks: { callback: value => formatCompactIDR(value), color: themeColors.text, font: { size: 10.5 }, padding: 8 },
+                    grid: { color: themeColors.grid, drawTicks: false, borderDash: [4, 4] },
+                    border: { display: false, dash: [4, 4] }
                 }
             }
         }
@@ -1973,8 +2193,8 @@ function renderDashboardChart(inList, outList) {
     const t = getChartThemeColors();
 
     chartTrendInstance = buildTrendBarChart('chartTrend', labels, [
-        { label: 'Pemasukan', data: dataIn, top: t.c1Top, bottom: t.c1Bottom },
-        { label: 'Pengeluaran', data: dataOut, top: t.c2Top, bottom: t.c2Bottom }
+        { label: 'Pemasukan', data: dataIn, top: t.inC, bottom: t.fade(t.inC) },
+        { label: 'Pengeluaran', data: dataOut, top: t.outC, bottom: t.fade(t.outC) }
     ]);
 
     // Kartu & panel pendamping (semua memakai daftar yang sama dengan angka KPI)
@@ -1992,7 +2212,7 @@ function setCashflowChartMode(mode) {
     document.querySelectorAll('.mode-toggle[data-page="cashflow-chart"] .mode-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.mode === mode);
     });
-    renderCashflowDashboardChart(getPaidMasterEntries());
+    renderCashflowDashboardChart();
 }
 
 function getWeekOfMonth(dateObj) {
@@ -2005,19 +2225,20 @@ function getWeekOfMonth(dateObj) {
 
 let cashflowBulanSudahDisesuaikan = false;
 
-// Bila bulan berjalan belum punya pembayaran, pindahkan filter ke bulan terakhir yang ada datanya
-// (hanya sekali, sebelum pengguna mengubah filter sendiri) agar grafik tidak tampak kosong.
-function sesuaikanBulanCashflow(paid) {
-    if (cashflowBulanSudahDisesuaikan || !paid || paid.length === 0) return;
+// Bila bulan berjalan belum punya pembayaran MAUPUN pengeluaran, pindahkan filter ke bulan terakhir
+// yang ada datanya (hanya sekali, sebelum pengguna mengubah filter sendiri) agar dashboard tidak kosong.
+function sesuaikanBulanCashflow(paid, keluar) {
+    if (cashflowBulanSudahDisesuaikan) return;
+    if ((!paid || paid.length === 0) && (!keluar || keluar.length === 0)) return;
     const monthInput = document.getElementById("filter-bulan-cashflow-chart");
     if (!monthInput) return;
     cashflowBulanSudahDisesuaikan = true;
     const ym = d => d.getFullYear() * 100 + (d.getMonth() + 1);
-    const semua = paid.map(item => {
-        const tgl = getValueByKeys(item, ["tanggalBayar", "Tanggal Bayar", "Tanggal Pembayaran"]);
+    const semua = (paid || []).map(item => {
+        const tgl = getValueByKeys(item, KEYS_TGL_BAYAR);
         const d = tgl ? parseToDateObj(tgl) : null;
         return d && !isNaN(d.getTime()) ? ym(d) : null;
-    }).filter(v => v !== null);
+    }).concat((keluar || []).map(e => ym(e.d))).filter(v => v !== null);
     if (semua.length === 0) return;
     const [y, m] = (monthInput.value || "").split('-').map(Number);
     if (semua.includes(y * 100 + m)) return;
@@ -2025,60 +2246,173 @@ function sesuaikanBulanCashflow(paid) {
     monthInput.value = `${Math.floor(terakhir / 100)}-${String(terakhir % 100).padStart(2, '0')}`;
 }
 
-function renderCashflowDashboardChart(paid) {
+function renderCashflowDashboardChart(data) {
     const canvas = document.getElementById("chartCashflowTrend");
     if (!canvas) return;
-    sesuaikanBulanCashflow(paid);
-    const ctx = canvas.getContext("2d");
+    if (!data || Array.isArray(data)) data = getCashflowDashboardData();
     if (chartCashflowTrendInstance) chartCashflowTrendInstance.destroy();
 
-    const monthInput = document.getElementById("filter-bulan-cashflow-chart");
-    const selectedMonth = monthInput && monthInput.value ? monthInput.value : new Date().toISOString().slice(0, 7); // "YYYY-MM"
-    const [selYear, selMonth] = selectedMonth.split('-').map(Number);
-
-    const groupMap = {}; // sortKey -> { label, cash, transfer }
-
-    paid.forEach(item => {
-        const tglRaw = getValueByKeys(item, ["tanggalBayar", "Tanggal Bayar", "Tanggal Pembayaran"]);
-        const d = tglRaw ? parseToDateObj(tglRaw) : null;
-        if (!d || isNaN(d.getTime())) return;
-        if (d.getFullYear() !== selYear || (d.getMonth() + 1) !== selMonth) return; // hanya bulan terpilih
-
-        let sortKey, label;
+    const groupMap = {}; // sortKey -> { label, cash, transfer, keluar }
+    const kunci = (d) => {
         if (cashflowChartMode === 'harian') {
             const day = d.getDate();
-            sortKey = String(day).padStart(2, '0');
-            label = String(day);
-        } else {
-            const week = getWeekOfMonth(d);
-            sortKey = String(week);
-            label = `Minggu ${week}`;
+            return { sortKey: String(day).padStart(2, '0'), label: String(day) };
         }
+        const week = getWeekOfMonth(d);
+        return { sortKey: String(week), label: `Minggu ${week}` };
+    };
+    const ambil = (d) => {
+        const { sortKey, label } = kunci(d);
+        if (!groupMap[sortKey]) groupMap[sortKey] = { label, cash: 0, transfer: 0, keluar: 0 };
+        return groupMap[sortKey];
+    };
 
-        if (!groupMap[sortKey]) groupMap[sortKey] = { label, cash: 0, transfer: 0 };
-        const nominal = typeof getNominalMasterPelanggan === "function" ? getNominalMasterPelanggan(item) : 0;
-        const metode = getValueByKeys(item, ["metode", "Metode Bayar", "Metode", "METODE"]);
-        if (isMetodeCash(metode)) groupMap[sortKey].cash += nominal; else groupMap[sortKey].transfer += nominal;
-    });
+    data.paid.forEach(p => { const g = ambil(p.d); if (p.isCash) g.cash += p.nominal; else g.transfer += p.nominal; });
+    data.keluar.forEach(e => { ambil(e.d).keluar += e.nominal; });
 
     // Pastikan urutan Minggu 1-4 selalu tampil walau datanya kosong
     if (cashflowChartMode === 'mingguan') {
         for (let w = 1; w <= 4; w++) {
             const k = String(w);
-            if (!groupMap[k]) groupMap[k] = { label: `Minggu ${w}`, cash: 0, transfer: 0 };
+            if (!groupMap[k]) groupMap[k] = { label: `Minggu ${w}`, cash: 0, transfer: 0, keluar: 0 };
         }
     }
 
     const sortedKeys = Object.keys(groupMap).sort();
     const labels = sortedKeys.map(k => groupMap[k].label);
-    const dataCash = sortedKeys.map(k => groupMap[k].cash);
-    const dataTransfer = sortedKeys.map(k => groupMap[k].transfer);
     const t = getChartThemeColors();
 
     chartCashflowTrendInstance = buildTrendBarChart('chartCashflowTrend', labels, [
-        { label: 'Cash', data: dataCash, top: t.c1Top, bottom: t.c1Bottom },
-        { label: 'Transfer', data: dataTransfer, top: t.c2Top, bottom: t.c2Bottom }
+        { label: 'Cash', data: sortedKeys.map(k => groupMap[k].cash), top: t.inC, bottom: t.fade(t.inC) },
+        { label: 'Transfer', data: sortedKeys.map(k => groupMap[k].transfer), top: t.in2C, bottom: t.fade(t.in2C) },
+        { label: 'Pengeluaran', data: sortedKeys.map(k => groupMap[k].keluar), top: t.outC, bottom: t.fade(t.outC) }
     ]);
+
+    // Kartu & panel pendamping (sama seperti tampilan Cash)
+    renderCashflowSparkline(sortedKeys.map(k => groupMap[k].cash + groupMap[k].transfer - groupMap[k].keluar));
+    renderCashflowDonut(data);
+    renderTopAreaCashflow(data.paid);
+}
+
+let chartCashflowSparkInstance = null;
+let chartCashflowDonutInstance = null;
+
+function renderCashflowSparkline(values) {
+    const canvas = document.getElementById('chartCashflowSpark');
+    if (!canvas) return;
+    if (chartCashflowSparkInstance) chartCashflowSparkInstance.destroy();
+    const t = getChartThemeColors();
+    const data = values && values.length > 1 ? values : [0, 0];
+    chartCashflowSparkInstance = new Chart(canvas.getContext('2d'), {
+        type: 'line',
+        data: {
+            labels: data.map(function (_, i) { return i + 1; }),
+            datasets: [{
+                data: data,
+                borderColor: t.spark,
+                borderWidth: 2,
+                fill: 'start',
+                tension: 0.45,
+                pointRadius: 0,
+                backgroundColor: function (context) {
+                    const area = context.chart.chartArea;
+                    if (!area) return 'transparent';
+                    const g = context.chart.ctx.createLinearGradient(0, area.top, 0, area.bottom);
+                    g.addColorStop(0, hexToRgba(t.spark, t.isDark ? 0.3 : 0.2));
+                    g.addColorStop(1, hexToRgba(t.spark, 0));
+                    return g;
+                }
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: false,
+            layout: { padding: { top: 6 } },
+            plugins: { legend: { display: false }, tooltip: { enabled: false } },
+            scales: { x: { display: false }, y: { display: false, grace: '10%' } }
+        }
+    });
+}
+
+// Gauge/donut 270°: Via Cash / Via Transfer / Pengeluaran, dengan saldo bersih di tengah
+function renderCashflowDonut(data) {
+    const canvas = document.getElementById('chartCashflowDonut');
+    if (!canvas) return;
+    if (chartCashflowDonutInstance) chartCashflowDonutInstance.destroy();
+    const t = getChartThemeColors();
+
+    const values = [data.cash, data.transfer, data.totalKeluar];
+    const adaData = values.some(function (v) { return v > 0; });
+
+    const setText = function (id, txt) { const el = document.getElementById(id); if (el) el.textContent = txt; };
+    setText('cf-donut-total', formatCompactIDR(data.saldo));
+    setText('cf-donut-val-cash', formatCompactIDR(data.cash));
+    setText('cf-donut-val-transfer', formatCompactIDR(data.transfer));
+    setText('cf-donut-val-keluar', formatCompactIDR(data.totalKeluar));
+
+    chartCashflowDonutInstance = new Chart(canvas.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Via Cash', 'Via Transfer', 'Pengeluaran'],
+            datasets: [{
+                data: adaData ? values : [1],
+                backgroundColor: adaData ? [t.inC, t.in2C, t.outC] : [t.empty],
+                borderWidth: 0,
+                borderRadius: adaData ? 6 : 0,
+                spacing: adaData ? 3 : 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            rotation: -135,
+            circumference: 270,
+            cutout: '74%',
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    enabled: adaData,
+                    backgroundColor: t.tipBg,
+                    titleColor: t.tipText,
+                    bodyColor: t.tipText,
+                    borderColor: t.tipBorder,
+                    borderWidth: 1,
+                    padding: 10,
+                    cornerRadius: 8,
+                    callbacks: { label: function (c) { return c.label + ': ' + formatIDR(c.parsed); } }
+                }
+            }
+        }
+    });
+}
+
+// Daftar 4 area dengan total pemasukan terbesar (bulan terpilih), dengan batang porsi
+function renderTopAreaCashflow(paid) {
+    const listEl = document.getElementById('cf-cat-list');
+    const totalEl = document.getElementById('cf-cat-total');
+    if (!listEl) return;
+
+    const map = {};
+    (paid || []).forEach(function (p) {
+        const area = getValueByKeys(p.item, ['area', 'Area', '_sheetName', 'AREA']) || 'Lainnya';
+        map[area] = (map[area] || 0) + p.nominal;
+    });
+    const entries = Object.keys(map).map(function (k) { return [k, map[k]]; }).sort(function (a, b) { return b[1] - a[1]; });
+    const total = entries.reduce(function (sum, e) { return sum + e[1]; }, 0);
+    if (totalEl) totalEl.textContent = formatIDR(total);
+
+    if (!entries.length || total <= 0) {
+        listEl.innerHTML = '<div class="cat-empty">Belum ada data pembayaran.</div>';
+        return;
+    }
+    listEl.innerHTML = entries.slice(0, 4).map(function (e) {
+        const pct = Math.round((e[1] / total) * 100);
+        return '<div class="cat-row">' +
+            '<div class="cat-row-top"><span>' + escHtml(String(e[0])) + '</span><span>' + formatCompactIDR(e[1]) + ' · ' + pct + '%</span></div>' +
+            '<div class="cat-bar"><div style="width:' + Math.max(pct, 2) + '%"></div></div>' +
+            '</div>';
+    }).join('');
 }
 
 function renderCategoryViews() {
@@ -3886,10 +4220,17 @@ window.toggleThemeMenu = toggleThemeMenu;
 // Mengambil ulang daftar alert (read-only: action=list) tiap CK_TOAST_INTERVAL_MS
 // dan hanya tampil jika ada catatan jatuh tempo (H-3 s/d hari ini).
 // ==========================================
-const CK_TOAST_INTERVAL_MS = 10000; // jeda antar popup (10 detik)
+const CK_TOAST_INTERVAL_MS = 10000; // jeda 10 detik: dihitung sejak popup tertutup sampai popup berikutnya muncul
 const CK_TOAST_VISIBLE_MS = 6000;   // lama popup tampil sebelum menutup sendiri
+const CK_TOAST_HIDE_ANIM_MS = 520;  // durasi animasi keluar (liquid)
 let ckToastHideTimer = null;
 let ckToastRemoveTimer = null;
+let ckPollTimer = null;
+
+function ckSchedulePoll(ms) {
+    clearTimeout(ckPollTimer);
+    ckPollTimer = setTimeout(ckPollAlerts, ms);
+}
 
 function ckToastRoot() {
     let root = document.getElementById('ck-toast-root');
@@ -3910,14 +4251,17 @@ function ckHideToast() {
     const toast = root.firstElementChild;
     if (!toast) return;
     toast.classList.remove('show');
+    toast.classList.add('hide');
     clearTimeout(ckToastRemoveTimer);
-    ckToastRemoveTimer = setTimeout(function () { root.innerHTML = ''; }, 250);
+    ckToastRemoveTimer = setTimeout(function () { root.innerHTML = ''; }, CK_TOAST_HIDE_ANIM_MS);
+    ckSchedulePoll(CK_TOAST_INTERVAL_MS); // popup berikutnya: 10 detik setelah yang ini tertutup
 }
 
 function ckShowToast(alerts) {
     const root = ckToastRoot();
     clearTimeout(ckToastHideTimer);
     clearTimeout(ckToastRemoveTimer);
+    clearTimeout(ckPollTimer); // selama popup tampil, tidak ada polling baru
 
     const MAX_ROWS = 3;
     const rows = alerts.slice(0, MAX_ROWS).map(function (item) {
@@ -3951,25 +4295,66 @@ function ckShowToast(alerts) {
 
 function ckPollAlerts() {
     const shell = document.getElementById('app-shell');
-    if (!shell || !shell.classList.contains('app-visible')) return; // belum login
-    if (document.hidden) return;                                     // tab tidak aktif
+    if (!shell || !shell.classList.contains('app-visible') || document.hidden) {
+        ckSchedulePoll(CK_TOAST_INTERVAL_MS); // belum login / tab tidak aktif: cek lagi nanti
+        return;
+    }
+    let toastTampil = false;
     fetch('index.php?action=list', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
         .then(function (res) { return res.json(); })
         .then(function (data) {
             if (!data || !data.success) return;
             const dot = document.getElementById('bell-dot');
             if (dot) dot.hidden = !(data.alerts && data.alerts.length);
-            if (data.alerts && data.alerts.length) ckShowToast(data.alerts);
+            if (data.alerts && data.alerts.length) { ckShowToast(data.alerts); toastTampil = true; }
         })
-        .catch(function () { /* gagal jaringan: diam saja, coba lagi di putaran berikutnya */ });
+        .catch(function () { /* gagal jaringan: diam saja, coba lagi di putaran berikutnya */ })
+        .then(function () {
+            // Bila popup tampil, jadwal berikutnya diatur saat popup tertutup (ckHideToast)
+            if (!toastTampil) ckSchedulePoll(CK_TOAST_INTERVAL_MS);
+        });
 }
 
 function initCeklisToast() {
-    setInterval(ckPollAlerts, CK_TOAST_INTERVAL_MS);
+    ckSchedulePoll(CK_TOAST_INTERVAL_MS);
+}
+
+// ==========================================
+// ANIMASI LIQUID HALAMAN LOGIN
+// Satu gumpalan mengikuti kursor dengan gerak melambat; ia menyatu dengan
+// gumpalan lain lewat filter goo (lihat #login-goo di index.php).
+// Loop berhenti sendiri saat gumpalan sudah diam atau login disembunyikan.
+// ==========================================
+function initLoginLiquid() {
+    const page = document.getElementById('login-page');
+    const blob = document.getElementById('login-cursor-blob');
+    if (!page || !blob) return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    let tx = window.innerWidth * 0.72, ty = window.innerHeight * 0.3;
+    let x = tx, y = ty, raf = 0;
+
+    function paint() { blob.style.transform = 'translate3d(' + x + 'px,' + y + 'px,0) translate(-50%,-50%)'; }
+    function loop() {
+        if (page.style.display === 'none') { raf = 0; return; }
+        x += (tx - x) * 0.07;
+        y += (ty - y) * 0.07;
+        paint();
+        if (Math.abs(tx - x) < 0.3 && Math.abs(ty - y) < 0.3) { raf = 0; return; }
+        raf = requestAnimationFrame(loop);
+    }
+    function kejar(e) {
+        tx = e.clientX; ty = e.clientY;
+        if (!raf && page.style.display !== 'none') raf = requestAnimationFrame(loop);
+    }
+    page.addEventListener('pointermove', kejar, { passive: true });
+    page.addEventListener('pointerdown', kejar, { passive: true });
+    paint();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
     initTheme();
+    initLoginLiquid();
     initCeklisToast();
     try { checkSession(); } catch (e) { showLogin(); }
     initFilterTempo();

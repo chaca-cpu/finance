@@ -62,9 +62,19 @@
     --chart-2: #86d9a5;
     --chart-2-soft: #d5f2e0;
     --chart-3: #d3d7e0;
-    --chart-spark: var(--chart-1);
+    --chart-spark: #22b573;
     --chart-grid: rgba(15, 23, 42, 0.05);
     --chart-empty: #eceef2;
+    --chart-track: #f1f2f6;
+    /* Seri grafik dashboard: masuk / masuk-2 (transfer, kantor) / keluar */
+    --chart-in: #22b573;
+    --chart-in-2: #3b82f6;
+    --chart-out: #ef4444;
+    /* Liquid halaman login */
+    --liquid-1: #6c63ff;
+    --liquid-2: #b3aeff;
+    --liquid-3: #86d9a5;
+    --liquid-opacity: 0.5;
 
     /* Radius */
     --radius-sm: 6px;
@@ -169,6 +179,14 @@ body[data-theme="reference"] {
     --chart-spark: #34c38f;
     --chart-grid: rgba(15, 23, 42, 0.06);
     --chart-empty: #eceef2;
+    --chart-track: #f1f2f5;
+    --chart-in: #34c38f;
+    --chart-in-2: #4f8df5;
+    --chart-out: #f0605d;
+    --liquid-1: #1c2536;
+    --liquid-2: #aab2c0;
+    --liquid-3: #7fcfa8;
+    --liquid-opacity: 0.32;
 
     --bg-subtle: #f1f2f4;
 }
@@ -182,57 +200,175 @@ body[data-theme="reference"] .brand-dot { background: var(--primary); }
 body[data-theme="reference"] .btn-link-bukti:hover { background: var(--primary); }
 
 /* ----------------------------------------------------------
-   TEMA 3 — GELAP DOFF (matte): charcoal netral, tanpa kilau,
-   kontras teks diturunkan, aksen lavender yang dipudarkan.
+   TEMA 3 — GELAP (mengikuti foto referensi "Lunor"): hitam netral
+   hampir murni, kartu sedikit lebih terang dengan border tipis,
+   aksen monokrom putih/abu, grafik putih + abu tanpa warna mencolok.
    Dipicu body[data-theme="dark"] (nama lama dipertahankan)
    ---------------------------------------------------------- */
 body[data-theme="dark"] {
-    --background: #17181b;
-    --surface: #1f2024;
-    --surface-hover: #25262b;
-    --surface-muted: #1b1c20;
-    --border: rgba(255, 255, 255, 0.07);
-    --border-hover: rgba(255, 255, 255, 0.13);
-    --border-soft: rgba(255, 255, 255, 0.045);
-    --text-primary: #e3e3e6;
-    --text-secondary: #9c9ca5;
-    --text-muted: #686871;
+    --background: #0d0d0e;
+    --surface: #151516;
+    --surface-hover: #1b1b1d;
+    --surface-muted: #111112;
+    --border: rgba(255, 255, 255, 0.08);
+    --border-hover: rgba(255, 255, 255, 0.16);
+    --border-soft: rgba(255, 255, 255, 0.05);
+    --text-primary: #f2f2f3;
+    --text-secondary: #9a9a9f;
+    --text-muted: #67676c;
 
-    --primary: #a29cf0;
-    --primary-hover: #b6b1f5;
-    --primary-soft: rgba(162, 156, 240, 0.13);
-    --primary-ring: rgba(162, 156, 240, 0.25);
-    --on-primary: #17161f;
+    --primary: #f2f2f3;
+    --primary-hover: #ffffff;
+    --primary-soft: rgba(255, 255, 255, 0.08);
+    --primary-ring: rgba(255, 255, 255, 0.2);
+    --on-primary: #0d0d0e;
 
-    --success: #58b981;
-    --success-soft: rgba(88, 185, 129, 0.13);
-    --success-text: #6cc793;
-    --warning: #d9a441;
-    --warning-soft: rgba(217, 164, 65, 0.13);
-    --warning-text: #dfb35c;
-    --danger: #d9696a;
-    --danger-soft: rgba(217, 105, 106, 0.13);
-    --danger-text: #e58384;
-    --info: #6f9fe0;
-    --info-soft: rgba(111, 159, 224, 0.13);
-    --info-text: #8fb3e8;
+    --success: #5fb887;
+    --success-soft: rgba(95, 184, 135, 0.12);
+    --success-text: #74c799;
+    --warning: #d6a545;
+    --warning-soft: rgba(214, 165, 69, 0.12);
+    --warning-text: #deb45e;
+    --danger: #d86b6c;
+    --danger-soft: rgba(216, 107, 108, 0.12);
+    --danger-text: #e48485;
+    --info: #8a9bb4;
+    --info-soft: rgba(138, 155, 180, 0.12);
+    --info-text: #a3b1c6;
 
-    --chart-1: #a29cf0;
-    --chart-1-soft: #45426b;
-    --chart-2: #5fae86;
-    --chart-2-soft: #26403a;
-    --chart-3: #3a3b42;
-    --chart-spark: var(--chart-1);
-    --chart-grid: rgba(255, 255, 255, 0.055);
-    --chart-empty: #2a2b31;
+    --chart-1: #f2f2f3;
+    --chart-1-soft: #5b5b60;
+    --chart-2: #707076;
+    --chart-2-soft: #2c2c2f;
+    --chart-3: #3a3a3e;
+    --chart-spark: #4cc38a;
+    --chart-grid: rgba(255, 255, 255, 0.07);
+    --chart-empty: #262628;
+    --chart-track: #1d1d1f;
+    --chart-in: #4cc38a;
+    --chart-in-2: #5b9dff;
+    --chart-out: #ef6b6b;
+    --liquid-1: #8a8a90;
+    --liquid-2: #4a4a4f;
+    --liquid-3: #5fb887;
+    --liquid-opacity: 0.2;
 
-    --bg-subtle: #27282d;
+    --bg-subtle: #1e1e20;
     --shadow-sm: none;
     --shadow-md: none;
-    --shadow-pop: 0 8px 24px rgba(0, 0, 0, 0.35);
+    --shadow-pop: 0 8px 24px rgba(0, 0, 0, 0.55);
     color-scheme: dark;
 }
 body[data-theme="dark"] .btn-acc { background: #3f9b68; }
+
+/* ----------------------------------------------------------
+   TEMA 4 — KRISTAL (TERANG): kaca buram (glassmorphism) berlatar putih kebiruan.
+   Semua panel berupa kaca putih transparan dengan blur, tepi tipis, dan kilau
+   di sudut atas. Aksen biru solid untuk tombol, menu aktif, dan segmented control.
+   Dipicu body[data-theme="crystal"]
+   ---------------------------------------------------------- */
+body[data-theme="crystal"] {
+    --background: #eef4ff;
+    --surface: rgba(255, 255, 255, 0.58);
+    --surface-hover: rgba(255, 255, 255, 0.78);
+    --surface-muted: rgba(255, 255, 255, 0.36);
+    --border: rgba(96, 128, 190, 0.22);
+    --border-hover: rgba(96, 128, 190, 0.38);
+    --border-soft: rgba(96, 128, 190, 0.11);
+    --text-primary: #0f1b3d;
+    --text-secondary: #51618a;
+    --text-muted: #8492b4;
+
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --primary-soft: rgba(37, 99, 235, 0.11);
+    --primary-ring: rgba(37, 99, 235, 0.26);
+    --on-primary: #ffffff;
+
+    --success: #22c55e;
+    --success-soft: rgba(34, 197, 94, 0.14);
+    --success-text: #15803d;
+    --warning: #f59e0b;
+    --warning-soft: rgba(245, 158, 11, 0.16);
+    --warning-text: #b45309;
+    --danger: #ef4444;
+    --danger-soft: rgba(239, 68, 68, 0.12);
+    --danger-text: #dc2626;
+    --info: #3b82f6;
+    --info-soft: rgba(59, 130, 246, 0.12);
+    --info-text: #1d4ed8;
+
+    --chart-1: #2563eb;
+    --chart-1-soft: #a9c3f7;
+    --chart-2: #22b573;
+    --chart-2-soft: #c6efdb;
+    --chart-3: #cfdcf5;
+    --chart-spark: #22b573;
+    --chart-grid: rgba(30, 58, 120, 0.09);
+    --chart-empty: rgba(96, 128, 190, 0.16);
+    --chart-track: rgba(96, 128, 190, 0.09);
+    --chart-in: #22b573;
+    --chart-in-2: #2563eb;
+    --chart-out: #ef4444;
+    --tooltip-bg: #ffffff;
+    --liquid-1: #2563eb;
+    --liquid-2: #60a5fa;
+    --liquid-3: #22d3ee;
+    --liquid-opacity: 0.42;
+
+    --bg-subtle: rgba(96, 128, 190, 0.13);
+    --shadow-sm: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 8px 26px rgba(50, 85, 160, 0.13);
+    --shadow-md: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 12px 34px rgba(50, 85, 160, 0.20);
+    --shadow-pop: 0 18px 50px rgba(30, 58, 120, 0.28);
+
+    /* Pendar biru lembut di belakang; kaca di atasnya yang memantulkan warna */
+    background:
+        radial-gradient(60vmax 60vmax at 10% 6%, rgba(96, 165, 250, 0.50), transparent 60%),
+        radial-gradient(55vmax 55vmax at 92% 10%, rgba(167, 180, 255, 0.40), transparent 60%),
+        radial-gradient(60vmax 60vmax at 72% 98%, rgba(125, 211, 252, 0.45), transparent 60%),
+        radial-gradient(45vmax 45vmax at 6% 92%, rgba(191, 219, 254, 0.70), transparent 60%),
+        linear-gradient(160deg, #f6f9ff 0%, #e7efff 55%, #ebf6ff 100%);
+    background-attachment: fixed;
+}
+
+/* Panel kaca: blur + kilau diagonal lembut */
+body[data-theme="crystal"] :is(.sidebar, .top-header, .card-stat, .chart-card, .table-card, .kategori-card, .ck-card, .ck-alert-box, .mode-toggle) {
+    -webkit-backdrop-filter: blur(18px) saturate(1.6);
+            backdrop-filter: blur(18px) saturate(1.6);
+}
+body[data-theme="crystal"] :is(.card-stat, .chart-card, .table-card, .kategori-card, .ck-card) {
+    background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.70) 0%, rgba(255, 255, 255, 0.18) 45%, rgba(255, 255, 255, 0) 100%);
+}
+body[data-theme="crystal"] .sidebar { background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.15)); }
+
+/* Aksen biru solid */
+body[data-theme="crystal"] .mode-btn.active,
+body[data-theme="crystal"] .archive-tab-btn.active { background: var(--primary); color: var(--on-primary); }
+body[data-theme="crystal"] .page-num { background: var(--primary); color: var(--on-primary); }
+body[data-theme="crystal"] .brand-dot { background: var(--primary); }
+body[data-theme="crystal"] .btn-link-bukti:hover { background: var(--primary); }
+body[data-theme="crystal"] .menu-btn.active { background: var(--primary); color: var(--on-primary); }
+body[data-theme="crystal"] .menu-btn.active .menu-icon { color: var(--on-primary); }
+body[data-theme="crystal"] .menu-btn.active::before { background: var(--on-primary); }
+body[data-theme="crystal"] .menu-btn.active:hover { background: var(--primary-hover); }
+
+/* Lapisan yang harus terbaca jelas di atas konten: kaca lebih pekat */
+body[data-theme="crystal"] :is(.modal-box, .ck-modal, .theme-menu, .ck-toast) {
+    background: rgba(255, 255, 255, 0.84);
+    -webkit-backdrop-filter: blur(26px) saturate(1.6);
+            backdrop-filter: blur(26px) saturate(1.6);
+}
+body[data-theme="crystal"] :is(.ck-modal-header, .ck-modal-footer) { background: rgba(255, 255, 255, 0.94); }
+body[data-theme="crystal"] .modal-overlay,
+body[data-theme="crystal"] .ck-modal-backdrop { background: rgba(15, 27, 61, 0.28); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+body[data-theme="crystal"] .login-page {
+    background:
+        radial-gradient(60vmax 60vmax at 10% 6%, rgba(96, 165, 250, 0.50), transparent 60%),
+        radial-gradient(55vmax 55vmax at 92% 10%, rgba(167, 180, 255, 0.40), transparent 60%),
+        linear-gradient(160deg, #f6f9ff 0%, #e7efff 55%, #ebf6ff 100%);
+}
+body[data-theme="crystal"] .login-box { background: rgba(255, 255, 255, 0.58); box-shadow: var(--shadow-md); }
+body[data-theme="crystal"] .bell-dot { border-color: #ffffff; }
 
 /* Menu pilihan tema */
 .theme-switcher { position: relative; }
@@ -273,8 +409,10 @@ body[data-theme="dark"] .btn-acc { background: #3f9b68; }
 .swatch-light i:last-child { background: #6c63ff; }
 .swatch-reference { background: #f3f4f6; }
 .swatch-reference i:last-child { background: #1c2536; }
-.swatch-dark { background: #17181b; }
-.swatch-dark i:last-child { background: #a29cf0; }
+.swatch-dark { background: #0d0d0e; }
+.swatch-dark i:last-child { background: #f2f2f3; }
+.swatch-crystal { background: linear-gradient(135deg, #f6f9ff 0%, #bcd4ff 100%); }
+.swatch-crystal i:last-child { background: #2563eb; }
 
 /* ==========================================================
    2. BASE
@@ -1075,18 +1213,97 @@ td.td-category { font-weight: 500; }
 }
 .ck-toast {
     pointer-events: auto;
+    position: relative;
+    overflow: hidden;
     background: var(--surface);
     border: 1px solid var(--border);
     border-left: 3px solid var(--danger);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-pop);
-    padding: var(--space-3) var(--space-4);
+    padding: var(--space-3) var(--space-4) 24px;
     cursor: pointer;
     opacity: 0;
-    transform: translateX(16px);
-    transition: opacity 0.2s ease, transform 0.2s ease;
+    transform-origin: top right;
+    transform: scale(0.08);
+    will-change: transform, border-radius;
 }
-.ck-toast.show { opacity: 1; transform: translateX(0); }
+.ck-toast > * { position: relative; z-index: 1; }
+
+/* Gelombang cairan di dasar kotak (dua lapis, bergerak berlawanan arah) — warna ikut tema */
+.ck-toast::before,
+.ck-toast::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: calc(100% + 200px);
+    height: 22px;
+    background: var(--danger);
+    opacity: 0.11;
+    pointer-events: none;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 30' preserveAspectRatio='none'%3E%3Cpath d='M0 15Q25 2 50 15T100 15T150 15T200 15V30H0Z'/%3E%3C/svg%3E") repeat-x bottom left / 200px 100%;
+            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 30' preserveAspectRatio='none'%3E%3Cpath d='M0 15Q25 2 50 15T100 15T150 15T200 15V30H0Z'/%3E%3C/svg%3E") repeat-x bottom left / 200px 100%;
+    animation: ck-wave 5s linear infinite;
+}
+.ck-toast::after {
+    height: 16px;
+    opacity: 0.08;
+    animation-duration: 8s;
+    animation-direction: reverse;
+}
+/* Isi kotak muncul menyusul setelah bentuk cairnya terbentuk */
+.ck-toast.show > * { animation: ck-content-in 0.45s ease 0.4s both; }
+@keyframes ck-content-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes ck-wave { from { transform: translateX(0); } to { transform: translateX(-200px); } }
+
+/* Masuk: gumpalan cairan kecil di pojok kanan atas, memuai (squash & stretch), lalu mengendap jadi kotak */
+.ck-toast.show {
+    animation:
+        ck-liquid-in 0.95s cubic-bezier(0.22, 0.8, 0.3, 1) both,
+        ck-liquid-idle 5s ease-in-out 0.95s infinite alternate;
+}
+@keyframes ck-liquid-in {
+    0%   { opacity: 0; transform: translate(6px, -6px) scale(0.08, 0.08); border-radius: 50%; }
+    18%  { opacity: 1; }
+    34%  { transform: translate(0, 0) scale(1.07, 0.55); border-radius: 46% 54% 58% 42% / 60% 40% 60% 40%; }
+    56%  { transform: scale(0.96, 1.1);  border-radius: 38px 26px 40px 28px; }
+    76%  { transform: scale(1.02, 0.97); border-radius: 20px 15px 22px 14px; }
+    100% { opacity: 1; transform: scale(1, 1); border-radius: var(--radius-lg); }
+}
+/* Diam: bentuk sudut membulat "bernapas" sangat halus, seperti permukaan cairan */
+@keyframes ck-liquid-idle {
+    0%   { border-radius: 12px 15px 13px 16px; }
+    50%  { border-radius: 16px 12px 17px 12px; }
+    100% { border-radius: 13px 17px 12px 15px; }
+}
+/* Keluar: memipih lalu menyusut jadi tetesan ke arah lonceng */
+.ck-toast.hide {
+    animation: ck-liquid-out 0.5s cubic-bezier(0.5, 0, 0.75, 0) both;
+}
+@keyframes ck-liquid-out {
+    0%   { opacity: 1; transform: scale(1, 1); }
+    35%  { opacity: 1; transform: scale(1.04, 0.82); border-radius: 30px 22px 32px 24px; }
+    100% { opacity: 0; transform: translate(6px, -6px) scale(0.06, 0.06); border-radius: 50%; }
+}
+/* Ikon: riak halus */
+.ck-toast-icon { position: relative; }
+.ck-toast.show .ck-toast-icon::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    border: 1.5px solid var(--danger);
+    opacity: 0;
+    animation: ck-ripple 2.4s ease-out 1s infinite;
+}
+@keyframes ck-ripple { 0% { transform: scale(1); opacity: 0.5; } 100% { transform: scale(1.9); opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+    .ck-toast::before, .ck-toast::after { animation: none; }
+    .ck-toast.show, .ck-toast.show > * { animation: none; opacity: 1; transform: none; }
+    .ck-toast.hide { animation: none; opacity: 0; }
+    .ck-toast.show .ck-toast-icon::after { animation: none; }
+}
 .ck-toast-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
 .ck-toast-icon { width: 24px; height: 24px; border-radius: var(--radius-sm); background: var(--danger-soft); color: var(--danger-text); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .ck-toast-title { font-size: 13px; font-weight: 600; color: var(--text-primary); flex: 1; min-width: 0; }
@@ -1156,3 +1373,245 @@ td.td-category { font-weight: 500; }
 @media (prefers-reduced-motion: reduce) {
     * { animation: none !important; transition: none !important; }
 }
+
+
+/* ==========================================================
+   7. POLES DASHBOARD (toggle Cash & Cashflow)
+   Tabel "Transaksi Terbaru" lebih lega, kartu grafik sama tinggi,
+   kontrol filter sejajar, warna grafik mengikuti token tema.
+   ========================================================== */
+
+/* Baris tabel + panel samping: tabel dapat porsi lebih lebar */
+.dash-row.dash-row-table { grid-template-columns: minmax(0, 1.9fr) minmax(0, 1fr); align-items: stretch; }
+@media (max-width: 1360px) {
+    .dash-row.dash-row-table { grid-template-columns: 1fr; }
+}
+
+/* Kartu dalam satu baris sama tinggi, isi ditata vertikal */
+.dash-row > .chart-card { display: flex; flex-direction: column; }
+.dash-row > .chart-card > .donut-wrap { flex: 1; }
+.dash-row > .chart-card > .chart-box { flex: 1; min-height: 240px; }
+
+/* Kontrol filter di header kartu grafik (bulan + Mingguan/Harian) */
+.chart-tools { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+.chart-tools .form-control { width: auto; height: 34px; padding: 0 10px; }
+.chart-tools .mode-toggle { margin: 0; }
+.chart-tools .mode-btn { height: 28px; }
+
+/* Kartu statistik: keterangan satu baris, tidak melebar */
+.stat-desc { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Tabel "Transaksi Terbaru" (Cash & Cashflow) */
+.table-card > .chart-header { padding-bottom: var(--space-3); border-bottom: 1px solid var(--border-soft); }
+.table-recent { table-layout: fixed; min-width: 640px; }
+.table-recent th, .table-recent td { padding: 0 14px; overflow: hidden; text-overflow: ellipsis; }
+.table-recent th { height: 40px; }
+.table-recent td { height: 50px; }
+.table-recent th:first-child, .table-recent td:first-child { padding-left: var(--space-5); }
+.table-recent th:last-child, .table-recent td:last-child { padding-right: var(--space-5); }
+.table-recent th:nth-child(1) { width: 112px; }
+.table-recent th:nth-child(2) { width: 128px; }
+.table-recent th:nth-child(5) { width: 140px; }
+.table-recent .badge-tag { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
+.table-recent .text-right { text-align: right; }
+
+/* Daftar teratas: satu warna aksen dengan tingkat kepekatan menurun */
+.cat-bar > div { background: var(--chart-in); }
+.cat-row:nth-child(2) .cat-bar > div { background: var(--chart-in); opacity: 0.7; }
+.cat-row:nth-child(3) .cat-bar > div { background: var(--chart-in); opacity: 0.45; }
+.cat-row:nth-child(4) .cat-bar > div { background: var(--chart-in); opacity: 0.25; }
+.cat-list { gap: var(--space-4); }
+
+/* Legenda donut: titik warna mengikuti token grafik */
+.dot-in { background: var(--chart-in); }
+.dot-in-2 { background: var(--chart-in-2); }
+.dot-out { background: var(--chart-out); }
+
+@media (max-width: 768px) {
+    .chart-tools { width: 100%; }
+    .chart-tools .form-control { flex: 1; min-width: 0; }
+}
+
+
+/* ==========================================================
+   8. LOGIN — ANIMASI LIQUID
+   Gumpalan berwarna tema melayang & berubah bentuk, menyatu lewat filter goo.
+   Satu gumpalan (.lq-cursor) mengikuti kursor (lihat initLoginLiquid di app.js).
+   ========================================================== */
+.login-page { overflow: hidden; }
+.login-liquid { position: absolute; inset: 0; filter: url(#login-goo); opacity: var(--liquid-opacity, 0.4); pointer-events: none; }
+.lq { position: absolute; display: block; border-radius: 50%; will-change: transform; }
+.lq-1 { width: 46vmin; height: 46vmin; left: 6%;   top: 8%;     background: var(--liquid-1); animation: lq-drift-1 19s ease-in-out infinite alternate, lq-morph 11s ease-in-out infinite alternate; }
+.lq-2 { width: 38vmin; height: 38vmin; right: 8%;  top: 16%;    background: var(--liquid-2); animation: lq-drift-2 23s ease-in-out infinite alternate, lq-morph 13s ease-in-out -4s infinite alternate; }
+.lq-3 { width: 52vmin; height: 52vmin; left: 30%;  bottom: -16%; background: var(--liquid-3); animation: lq-drift-3 27s ease-in-out infinite alternate, lq-morph 15s ease-in-out -7s infinite alternate; }
+.lq-4 { width: 26vmin; height: 26vmin; right: 26%; bottom: 12%; background: var(--liquid-1); animation: lq-drift-4 16s ease-in-out infinite alternate, lq-morph 9s ease-in-out -2s infinite alternate; }
+.lq-cursor { width: 18vmin; height: 18vmin; left: 0; top: 0; background: var(--liquid-2); transform: translate3d(72vw, 30vh, 0) translate(-50%, -50%); }
+
+@keyframes lq-drift-1 { from { transform: translate(0, 0) scale(1); }        to { transform: translate(16vw, 12vh) scale(1.15); } }
+@keyframes lq-drift-2 { from { transform: translate(0, 0) scale(1.05); }     to { transform: translate(-14vw, 14vh) scale(0.9); } }
+@keyframes lq-drift-3 { from { transform: translate(0, 0) scale(0.95); }     to { transform: translate(-18vw, -10vh) scale(1.12); } }
+@keyframes lq-drift-4 { from { transform: translate(0, 0) scale(1); }        to { transform: translate(-10vw, -16vh) scale(1.25); } }
+@keyframes lq-morph {
+    0%   { border-radius: 50%; }
+    33%  { border-radius: 60% 40% 55% 45% / 45% 60% 40% 55%; }
+    66%  { border-radius: 42% 58% 38% 62% / 58% 42% 62% 38%; }
+    100% { border-radius: 55% 45% 60% 40% / 40% 55% 45% 60%; }
+}
+
+/* Kartu login: kaca tipis di atas liquid, masuk dengan gerak memuai-mengendap */
+.login-box {
+    position: relative;
+    z-index: 1;
+    background: var(--surface);
+    background: color-mix(in srgb, var(--surface) 80%, transparent);
+    -webkit-backdrop-filter: blur(14px) saturate(1.2);
+            backdrop-filter: blur(14px) saturate(1.2);
+    animation: login-box-in 0.9s cubic-bezier(0.22, 0.8, 0.3, 1) both;
+}
+@keyframes login-box-in {
+    0%   { opacity: 0; transform: translateY(16px) scale(0.96, 0.9); }
+    55%  { opacity: 1; transform: translateY(0) scale(1.015, 1.02); }
+    100% { opacity: 1; transform: none; }
+}
+
+/* Tombol Masuk: cairan naik dari bawah saat di-hover */
+.btn-login { position: relative; overflow: hidden; isolation: isolate; }
+.btn-login::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 100%;
+    width: 200%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.14);
+    background: color-mix(in srgb, var(--on-primary) 14%, transparent);
+    transform: translate(-50%, 0) scale(0.5);
+    transition: top 0.55s cubic-bezier(0.22, 0.8, 0.3, 1), transform 0.55s cubic-bezier(0.22, 0.8, 0.3, 1);
+    z-index: -1;
+    pointer-events: none;
+}
+.btn-login:hover::before { top: -60%; transform: translate(-50%, 0) scale(1); }
+.btn-login:active { transform: scale(0.985); }
+
+/* ==========================================================
+   9. ANIMASI HOVER
+   Prioritas: sidebar. Dibungkus (hover: hover) agar tidak "menempel" di layar sentuh.
+   Animasi otomatis mati untuk pengguna prefers-reduced-motion (aturan global di bawah).
+   ========================================================== */
+.menu-btn, .btn-logout { position: relative; }
+.menu-btn { transition: background-color 0.18s ease, color 0.18s ease, transform 0.22s cubic-bezier(0.34, 1.4, 0.64, 1); }
+.menu-btn .menu-icon, .btn-logout svg { transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.18s ease; }
+
+/* Penanda aksen di tepi kiri: tumbuh saat hover, lebih tinggi saat aktif */
+.menu-btn::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 3px;
+    height: 0;
+    border-radius: 0 3px 3px 0;
+    background: var(--primary);
+    transform: translateY(-50%);
+    transition: height 0.22s cubic-bezier(0.34, 1.4, 0.64, 1);
+    pointer-events: none;
+}
+.menu-btn.active::before { height: 18px; }
+.menu-btn:active { transform: scale(0.98); }
+.menu-group.expanded > .menu-btn .chevron-icon { color: var(--text-primary); }
+
+@media (hover: hover) {
+    .menu-btn:hover { transform: translateX(3px); }
+    .menu-btn:hover::before { height: 14px; }
+    .menu-btn.active:hover::before { height: 22px; }
+    .menu-btn:hover .menu-icon { transform: scale(1.16) rotate(-6deg); color: var(--primary); }
+    .menu-btn.has-submenu:hover .chevron-icon { color: var(--text-primary); }
+    .menu-btn:hover .menu-text { letter-spacing: 0.1px; }
+    .sub-menu-btn:hover { transform: translateX(4px); }
+
+    .btn-logout:hover { transform: translateX(3px); }
+    .btn-logout:hover svg { transform: translateX(3px) scale(1.1); }
+
+    /* Logo */
+    .brand-dot { transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), border-radius 0.4s ease; }
+    .app-brand:hover .brand-dot { transform: rotate(-8deg) scale(1.08); border-radius: 12px; }
+
+    /* Tombol ikon di header */
+    .btn-toggle-sidebar svg, .btn-theme-toggle svg, .btn-bell svg { transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .btn-theme-toggle:hover svg { transform: rotate(35deg) scale(1.1); }
+    .btn-toggle-sidebar:hover svg { transform: scale(1.15); }
+    .btn-bell:hover svg { animation: bell-swing 0.6s ease; transform-origin: 50% 10%; }
+    .profile-avatar { transition: box-shadow 0.2s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .profile-chip:hover .profile-avatar { box-shadow: 0 0 0 3px var(--primary-ring); transform: scale(1.06); }
+
+    /* Menu tema */
+    .theme-option { transition: background-color 0.15s ease, transform 0.2s cubic-bezier(0.34, 1.4, 0.64, 1); }
+    .theme-option:hover { transform: translateX(3px); }
+    .theme-option .theme-swatch { transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .theme-option:hover .theme-swatch { transform: scale(1.12) rotate(-4deg); }
+
+    /* Kartu */
+    .card-stat, .kategori-card { transition: transform 0.22s cubic-bezier(0.34, 1.4, 0.64, 1), border-color 0.15s ease, box-shadow 0.22s ease, background-color 0.15s ease; }
+    .card-stat:hover, .kategori-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+    .ck-item { transition: transform 0.2s ease, background-color 0.15s, border-color 0.15s; }
+    .ck-item:hover { transform: translateX(2px); }
+
+    /* Tombol */
+    .btn-primary-add, .btn-reset-filter, .btn-page, .btn-submit, .btn-refresh, .btn-cancel, .ck-btn, .btn-acc {
+        transition: transform 0.18s cubic-bezier(0.34, 1.4, 0.64, 1), background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.18s ease, color 0.15s ease, filter 0.15s ease, opacity 0.15s ease;
+    }
+    .btn-primary-add:hover, .btn-reset-filter:hover, .btn-submit:hover, .btn-refresh:hover, .btn-cancel:hover, .ck-btn:hover, .btn-acc:hover:not(:disabled) { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+    .btn-page:hover:not(:disabled) { transform: translateY(-1px); }
+    .mode-btn:hover { transform: translateY(-1px); }
+
+    /* Daftar teratas & legenda donut */
+    .cat-bar { transition: height 0.2s ease; }
+    .cat-row:hover .cat-bar { height: 9px; }
+    .cat-row-top span:first-child { transition: transform 0.2s ease; }
+    .cat-row:hover .cat-row-top span:first-child { transform: translateX(3px); }
+    .donut-legend-item i { transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .donut-legend-item:hover i { transform: scale(1.5); }
+
+    /* Tabel: nominal bergeser sedikit saat baris di-hover */
+    td.amount-in, td.amount-out { transition: transform 0.2s ease; }
+    tbody tr:hover td.amount-in, tbody tr:hover td.amount-out { transform: translateX(-3px); }
+}
+.btn-primary-add:active, .btn-reset-filter:active, .btn-submit:active, .btn-refresh:active, .btn-cancel:active, .ck-btn:active, .btn-acc:active:not(:disabled), .mode-btn:active { transform: scale(0.97); }
+
+@keyframes bell-swing {
+    0%, 100% { transform: rotate(0); }
+    20% { transform: rotate(14deg); }
+    40% { transform: rotate(-11deg); }
+    60% { transform: rotate(7deg); }
+    80% { transform: rotate(-4deg); }
+}
+
+
+/* ==========================================================
+   10. LOGIN — kolom password dengan tombol mata
+   ========================================================== */
+.password-field { position: relative; }
+.password-field .form-input { padding-right: 42px; }
+.btn-eye {
+    position: absolute;
+    top: 50%;
+    right: 4px;
+    width: 32px;
+    height: 32px;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    transition: color 0.15s ease, background-color 0.15s ease;
+}
+.btn-eye:hover { color: var(--text-primary); background: var(--bg-subtle); }
+.btn-eye .eye-off { display: none; }
+.btn-eye.is-visible .eye-on { display: none; }
+.btn-eye.is-visible .eye-off { display: block; }
+.btn-eye.is-visible { color: var(--primary); }
+.btn-login:disabled { opacity: 0.7; cursor: progress; }

@@ -246,8 +246,25 @@ if (isset($_GET['action']) && in_array($_GET['action'], ['toggle', 'delete', 'li
 <body>
 
 
+    <!-- Filter "gooey" untuk animasi liquid di halaman login -->
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+        <defs>
+            <filter id="login-goo" x="-10%" y="-10%" width="120%" height="120%">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="16" result="blur"/>
+                <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -9"/>
+            </filter>
+        </defs>
+    </svg>
+
     <!-- ================= HALAMAN LOGIN ================= -->
     <div class="login-page" id="login-page">
+        <div class="login-liquid" aria-hidden="true">
+            <span class="lq lq-1"></span>
+            <span class="lq lq-2"></span>
+            <span class="lq lq-3"></span>
+            <span class="lq lq-4"></span>
+            <span class="lq lq-cursor" id="login-cursor-blob"></span>
+        </div>
         <div class="login-box">
             <div class="login-brand">
                 <span class="brand-dot"></span>
@@ -262,7 +279,13 @@ if (isset($_GET['action']) && in_array($_GET['action'], ['toggle', 'delete', 'li
                 </div>
                 <div class="form-group">
                     <label>Password</label>
-                    <input type="password" id="login-password" class="form-input" placeholder="Masukkan password" required autocomplete="current-password">
+                    <div class="password-field">
+                        <input type="password" id="login-password" class="form-input" placeholder="Masukkan password" required autocomplete="current-password">
+                        <button type="button" class="btn-eye" id="btn-toggle-password" onclick="togglePasswordVisibility()" aria-label="Tampilkan password" aria-pressed="false" title="Tampilkan password">
+                            <svg class="eye-on" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                            <svg class="eye-off" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 19c-6.5 0-10-7-10-7a18.5 18.5 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c6.5 0 10 7 10 7a18.5 18.5 0 0 1-2.16 3.19"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><path d="m2 2 20 20"/></svg>
+                        </button>
+                    </div>
                 </div>
                 <button type="submit" class="btn-login">Masuk</button>
                 <p class="login-error" id="login-error"></p>
@@ -302,7 +325,10 @@ if (isset($_GET['action']) && in_array($_GET['action'], ['toggle', 'delete', 'li
                         <span class="theme-swatch swatch-reference"><i></i><i></i></span><span class="theme-name">Referensi</span>
                     </button>
                     <button type="button" class="theme-option" role="menuitemradio" data-theme-value="dark" onclick="setTheme('dark')">
-                        <span class="theme-swatch swatch-dark"><i></i><i></i></span><span class="theme-name">Gelap doff</span>
+                        <span class="theme-swatch swatch-dark"><i></i><i></i></span><span class="theme-name">Gelap</span>
+                    </button>
+                    <button type="button" class="theme-option" role="menuitemradio" data-theme-value="crystal" onclick="setTheme('crystal')">
+                        <span class="theme-swatch swatch-crystal"><i></i><i></i></span><span class="theme-name">Kristal</span>
                     </button>
                 </div>
             </div>
@@ -479,9 +505,9 @@ if (isset($_GET['action']) && in_array($_GET['action'], ['toggle', 'delete', 'li
                             <h4>Laporan Kas</h4>
                             <p>Pemasukan vs pengeluaran</p>
                         </div>
-                        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                            <input type="month" id="filter-bulan-cash-chart" class="form-control" style="width:auto; padding: 7px 10px;" value="<?= date('Y-m') ?>" onchange="renderDashboardChart(globalIn || [], globalOut || [])">
-                            <div class="mode-toggle" data-page="cash-chart" style="margin: 0;">
+                        <div class="chart-tools">
+                            <input type="month" id="filter-bulan-cash-chart" class="form-control" value="<?= date('Y-m') ?>" onchange="renderDashboardChart(globalIn || [], globalOut || [])">
+                            <div class="mode-toggle" data-page="cash-chart">
                                 <button type="button" class="mode-btn active" data-mode="mingguan" onclick="setCashChartMode('mingguan')">Mingguan</button>
                                 <button type="button" class="mode-btn" data-mode="harian" onclick="setCashChartMode('harian')">Harian</button>
                             </div>
@@ -506,9 +532,9 @@ if (isset($_GET['action']) && in_array($_GET['action'], ['toggle', 'delete', 'li
                             </div>
                         </div>
                         <div class="donut-legend">
-                            <div class="donut-legend-item"><strong id="donut-val-setor">Rp 0</strong><span><i style="background: var(--brand);"></i>Ter-setor</span></div>
-                            <div class="donut-legend-item"><strong id="donut-val-kantor">Rp 0</strong><span><i style="background: var(--lime);"></i>Cash kantor</span></div>
-                            <div class="donut-legend-item"><strong id="donut-val-keluar">Rp 0</strong><span><i style="background: var(--lavender);"></i>Pengeluaran</span></div>
+                            <div class="donut-legend-item"><strong id="donut-val-setor">Rp 0</strong><span><i class="dot-in-2"></i>Ter-setor</span></div>
+                            <div class="donut-legend-item"><strong id="donut-val-kantor">Rp 0</strong><span><i class="dot-in"></i>Cash kantor</span></div>
+                            <div class="donut-legend-item"><strong id="donut-val-keluar">Rp 0</strong><span><i class="dot-out"></i>Pengeluaran</span></div>
                         </div>
                     </div>
                 </div>
@@ -521,7 +547,7 @@ if (isset($_GET['action']) && in_array($_GET['action'], ['toggle', 'delete', 'li
                         <p>5 transaksi pemasukan/pengeluaran paling baru</p>
                     </div>
                     <div class="table-responsive">
-                        <table>
+                        <table class="table-recent">
                             <thead>
                                 <tr>
                                     <th>Tanggal</th>
@@ -554,72 +580,117 @@ if (isset($_GET['action']) && in_array($_GET['action'], ['toggle', 'delete', 'li
             <!-- /dashboard-cash-view -->
 
             <div id="dashboard-cashflow-view" style="display:none;">
-                <div class="metrics-grid metrics-4 mb-4">
-                    <div class="card-stat card-blue">
-                        <div class="stat-header"><span>Total Transaksi</span><div class="stat-icon" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg></div></div>
-                        <div class="stat-value" id="cf-stat-total-transaksi">0</div>
-                        <div class="stat-desc">Seluruh Pembayaran Masuk</div>
+            <div class="metrics-grid metrics-5">
+                <div class="card-stat">
+                    <div class="stat-header"><span>Pemasukan</span><div class="stat-icon" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg></div></div>
+                    <div class="stat-value" id="cf-stat-pemasukan">Rp 0</div>
+                    <div class="stat-desc" id="cf-stat-pemasukan-desc">0 pembayaran</div>
+                </div>
+
+                <div class="card-stat">
+                    <div class="stat-header"><span>Pengeluaran</span><div class="stat-icon" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg></div></div>
+                    <div class="stat-value" id="cf-stat-pengeluaran">Rp 0</div>
+                    <div class="stat-desc" id="cf-stat-pengeluaran-desc">Kas keluar</div>
+                </div>
+
+                <div class="card-stat has-spark">
+                    <div class="stat-header"><span>Saldo Bersih</span><div class="stat-icon" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg></div></div>
+                    <div class="stat-value" id="cf-stat-saldo">Rp 0</div>
+                    <div class="stat-desc">Pemasukan − pengeluaran</div>
+                    <div class="stat-spark"><canvas id="chartCashflowSpark"></canvas></div>
+                </div>
+
+                <div class="card-stat">
+                    <div class="stat-header"><span>Via Cash</span><div class="stat-icon" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg></div></div>
+                    <div class="stat-value" id="cf-stat-nominal-cash">Rp 0</div>
+                    <div class="stat-desc">Dibayar tunai</div>
+                </div>
+
+                <div class="card-stat">
+                    <div class="stat-header"><span>Via Transfer</span><div class="stat-icon" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg></div></div>
+                    <div class="stat-value" id="cf-stat-nominal-transfer">Rp 0</div>
+                    <div class="stat-desc">Dibayar non-tunai</div>
+                </div>
+            </div>
+
+            <div class="dash-row">
+                <div class="chart-card">
+                    <div class="chart-header-flex">
+                        <div>
+                            <h4>Tren Arus Kas</h4>
+                            <p id="cf-periode-label">Pemasukan (Cash &amp; Transfer) vs pengeluaran</p>
+                        </div>
+                        <div class="chart-tools">
+                            <input type="month" id="filter-bulan-cashflow-chart" class="form-control" value="<?= date('Y-m') ?>" onchange="renderCashflowDashboard()">
+                            <div class="mode-toggle" data-page="cashflow-chart">
+                                <button type="button" class="mode-btn active" data-mode="mingguan" onclick="setCashflowChartMode('mingguan')">Mingguan</button>
+                                <button type="button" class="mode-btn" data-mode="harian" onclick="setCashflowChartMode('harian')">Harian</button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card-stat card-emerald">
-                        <div class="stat-header"><span>Total Nominal</span><div class="stat-icon" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg></div></div>
-                        <div class="stat-value" id="cf-stat-total-nominal">Rp 0</div>
-                        <div class="stat-desc">Akumulasi Seluruh Pembayaran</div>
-                    </div>
-                    <div class="card-stat card-blue">
-                        <div class="stat-header"><span>Via Cash</span><div class="stat-icon" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg></div></div>
-                        <div class="stat-value" id="cf-stat-nominal-cash">Rp 0</div>
-                        <div class="stat-desc">Dibayar Tunai</div>
-                    </div>
-                    <div class="card-stat card-amber">
-                        <div class="stat-header"><span>Via Transfer</span><div class="stat-icon" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg></div></div>
-                        <div class="stat-value" id="cf-stat-nominal-transfer">Rp 0</div>
-                        <div class="stat-desc">Dibayar Non-Tunai</div>
+                    <div class="chart-box">
+                        <canvas id="chartCashflowTrend"></canvas>
                     </div>
                 </div>
 
-                <div class="charts-grid mb-4">
-                    <div class="chart-card full-width">
-                        <div class="chart-header-flex">
-                            <div>
-                                <h4>Tren Pembayaran Pelanggan</h4>
-                                <p>Nominal pembayaran via Cash vs Transfer, per minggu/harian</p>
-                            </div>
-                            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                                <input type="month" id="filter-bulan-cashflow-chart" class="form-control" style="padding: 5px 8px; font-size: 10px;" value="<?= date('Y-m') ?>" onchange="renderCashflowDashboardChart(getPaidMasterEntries())">
-                                <div class="mode-toggle" data-page="cashflow-chart" style="margin: 0;">
-                                    <button type="button" class="mode-btn active" data-mode="mingguan" onclick="setCashflowChartMode('mingguan')">Mingguan</button>
-                                    <button type="button" class="mode-btn" data-mode="harian" onclick="setCashflowChartMode('harian')">Harian</button>
-                                </div>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h4>Komposisi Arus Kas</h4>
+                        <p>Cash, transfer, dan pengeluaran</p>
+                    </div>
+                    <div class="donut-wrap">
+                        <div class="donut-canvas-box">
+                            <canvas id="chartCashflowDonut"></canvas>
+                            <div class="donut-center">
+                                <strong id="cf-donut-total">Rp 0</strong>
+                                <span>Saldo bersih</span>
                             </div>
                         </div>
-                        <div class="chart-box">
-                            <canvas id="chartCashflowTrend"></canvas>
+                        <div class="donut-legend">
+                            <div class="donut-legend-item"><strong id="cf-donut-val-cash">Rp 0</strong><span><i class="dot-in"></i>Via Cash</span></div>
+                            <div class="donut-legend-item"><strong id="cf-donut-val-transfer">Rp 0</strong><span><i class="dot-in-2"></i>Via Transfer</span></div>
+                            <div class="donut-legend-item"><strong id="cf-donut-val-keluar">Rp 0</strong><span><i class="dot-out"></i>Pengeluaran</span></div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="table-card mb-4">
-                    <div class="chart-header" style="padding: 16px 16px 4px;">
-                        <h4>Pembayaran Terbaru</h4>
-                        <p>10 pembayaran pelanggan paling baru (seluruh metode)</p>
+            <div class="dash-row dash-row-table">
+                <div class="table-card">
+                    <div class="chart-header">
+                        <h4>Transaksi Terbaru</h4>
+                        <p>5 pembayaran/pengeluaran paling baru di bulan terpilih</p>
                     </div>
                     <div class="table-responsive">
-                        <table>
+                        <table class="table-recent">
                             <thead>
                                 <tr>
-                                    <th>Tanggal Bayar</th>
-                                    <th>Nama Pelanggan</th>
-                                    <th>Area</th>
-                                    <th>Metode</th>
+                                    <th>Tanggal</th>
+                                    <th>Tipe</th>
+                                    <th>Nama / Keterangan</th>
+                                    <th>Area / Kategori</th>
                                     <th class="text-right">Nominal</th>
                                 </tr>
                             </thead>
                             <tbody id="tbody-cashflow-dashboard">
-                                <tr><td colspan="5" class="text-center cell-loading">Memuat data pembayaran...</td></tr>
+                                <tr><td colspan="5" class="text-center cell-loading">Memuat data transaksi...</td></tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
+
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h4>Area Pembayaran Teratas</h4>
+                        <p>Berdasarkan total nominal</p>
+                    </div>
+                    <div class="cat-total" id="cf-cat-total">Rp 0</div>
+                    <div class="cat-total-sub">Total pemasukan</div>
+                    <div class="cat-list" id="cf-cat-list">
+                        <div class="cat-empty">Memuat area...</div>
+                    </div>
+                </div>
+            </div>
             </div>
         </section>
 
