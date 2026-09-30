@@ -2527,12 +2527,20 @@ function formatRupiah(amount) {
     }).format(amount || 0);
 }
 
-function parseToDateObj(str) {
+// Parser tanggal. TIDAK lagi bergantung pada bulan berjalan (new Date()) -> hasilnya
+// selalu sama kapan pun dibuka. Aturan:
+//  - Date object / ISO (YYYY-MM-DD, ...T...) -> dibaca apa adanya
+//  - "A/B/YYYY": kalau salah satu angka > 12, otomatis jelas mana tanggal & bulannya
+//  - kalau dua-duanya <= 12 (ambigu, mis. 05/09/2026): pakai refDate (tanggal jatuh tempo)
+//    dan pilih tafsiran yang paling dekat dengannya; tanpa refDate -> default DD/MM/YYYY
+function parseToDateObj(str, refDate) {
     if (!str || str === "-" || str === "undefined") return null;
-    if (str instanceof Date) return isNaN(str.getTime()) ? null : str;
+    if (str instanceof Date) {
+        return isNaN(str.getTime()) ? null : new Date(str.getFullYear(), str.getMonth(), str.getDate());
+    }
 
     const cleanStr = String(str).trim();
-    
+
     if (cleanStr.includes("T")) {
         const d = new Date(cleanStr);
         if (!isNaN(d.getTime())) {
@@ -2540,36 +2548,34 @@ function parseToDateObj(str) {
         }
     }
 
-    let m = cleanStr.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+    const mk = (y, mo, d) => {
+        const dt = new Date(y, mo - 1, d);
+        return (dt.getFullYear() === y && dt.getMonth() === mo - 1 && dt.getDate() === d) ? dt : null;
+    };
+
+    // ISO tanggal saja: YYYY-MM-DD
+    const iso = cleanStr.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+    if (iso) return mk(parseInt(iso[1], 10), parseInt(iso[2], 10), parseInt(iso[3], 10));
+
+    const m = cleanStr.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
     if (m) {
-        let p1 = parseInt(m[1], 10);
-        let p2 = parseInt(m[2], 10);
-        let year = parseInt(m[3], 10);
-        
-        // Ambil bulan saat ini (1-12)
-        let currentMonth = new Date().getMonth() + 1; 
-        
-        let month, day;
+        const p1 = parseInt(m[1], 10);
+        const p2 = parseInt(m[2], 10);
+        const year = parseInt(m[3], 10);
 
-        // Cek apakah angka pertama atau kedua sama dengan bulan saat ini
-        if (p1 === currentMonth) {
-            month = p1 - 1; // Jadikan p1 sebagai bulan
-            day = p2;
-        } else if (p2 === currentMonth) {
-            month = p2 - 1; // Jadikan p2 sebagai bulan
-            day = p1;
-        } else {
-            // Fallback jika tidak ada yang cocok dengan bulan berjalan
-            if (p1 > 12) {
-                day = p1;
-                month = p2 - 1;
-            } else {
-                month = p1 - 1; // Default ke MM/DD/YYYY
-                day = p2;
-            }
+        const asDMY = mk(year, p2, p1); // p1 = tanggal, p2 = bulan
+        const asMDY = mk(year, p1, p2); // p1 = bulan,   p2 = tanggal
+
+        if (asDMY && !asMDY) return asDMY;
+        if (asMDY && !asDMY) return asMDY;
+        if (!asDMY && !asMDY) return null;
+        if (p1 === p2) return asDMY;
+
+        if (refDate instanceof Date && !isNaN(refDate.getTime())) {
+            const jarak = (d) => Math.abs(d.getTime() - refDate.getTime());
+            return jarak(asMDY) < jarak(asDMY) ? asMDY : asDMY;
         }
-
-        return new Date(year, month, day);
+        return asDMY;
     }
 
     const d = new Date(cleanStr);
@@ -2607,34 +2613,36 @@ function normalisasiNamaBank(metodeRaw) {
 }
 
 function evalKetepatanPembayaran(jatuhTempoStr, tglBayarStr, metodeStr = "") {
-    const dPaid = parseToDateObj(tglBayarStr);
-
-    if (!dPaid) {
-        return { isTelat: false, statusText: "Data Tidak Lengkap", daysDiff: 0, keterangan: "-" };
-    }
+    // jatuhTempoStr boleh: Date object (paling aman), string tanggal lengkap, atau angka tanggal saja ("1".."31")
+    const tempoStr = (jatuhTempoStr instanceof Date) ? "" : String(jatuhTempoStr || "").trim();
+    const hanyaTanggal = !(jatuhTempoStr instanceof Date) && /^\d{1,2}$/.test(tempoStr);
 
     let dDue = null;
-    const tempoStr = String(jatuhTempoStr || "").trim();
+    let dPaid = null;
 
-    if (/^\d{1,2}$/.test(tempoStr)) {
+    if (hanyaTanggal) {
+        // Tidak ada info bulan/periode -> tebak jatuh tempo terdekat dari tanggal bayar
+        dPaid = parseToDateObj(tglBayarStr);
+        if (!dPaid) {
+            return { isTelat: false, statusText: "Data Tidak Lengkap", daysDiff: 0, keterangan: "-" };
+        }
         const dayTempo = parseInt(tempoStr, 10);
         const y = dPaid.getFullYear();
         const m = dPaid.getMonth();
-
-        const optThis = new Date(y, m, dayTempo);
-        const optNext = new Date(y, m + 1, dayTempo);
-        const optPrev = new Date(y, m - 1, dayTempo);
-
-        const diffs = [
-            { date: optThis, diff: Math.round((dPaid - optThis) / (1000 * 3600 * 24)) },
-            { date: optNext, diff: Math.round((dPaid - optNext) / (1000 * 3600 * 24)) },
-            { date: optPrev, diff: Math.round((dPaid - optPrev) / (1000 * 3600 * 24)) }
-        ];
-
-        diffs.sort((a, b) => Math.abs(a.diff) - Math.abs(b.diff));
-        dDue = diffs[0].date;
+        const buat = (bulan) => {
+            const akhir = new Date(y, bulan + 1, 0).getDate();
+            return new Date(y, bulan, Math.min(dayTempo, akhir));
+        };
+        const kandidat = [buat(m), buat(m + 1), buat(m - 1)];
+        kandidat.sort((p, q) => Math.abs(dPaid - p) - Math.abs(dPaid - q));
+        dDue = kandidat[0];
     } else {
-        dDue = parseToDateObj(tempoStr);
+        // Tanggal jatuh tempo lengkap -> baca dulu, lalu pakai sebagai acuan untuk membaca tanggal bayar
+        dDue = parseToDateObj(jatuhTempoStr);
+        dPaid = parseToDateObj(tglBayarStr, dDue);
+        if (!dPaid) {
+            return { isTelat: false, statusText: "Data Tidak Lengkap", daysDiff: 0, keterangan: "-" };
+        }
     }
 
     if (!dDue || isNaN(dDue.getTime())) {
@@ -2647,6 +2655,9 @@ function evalKetepatanPembayaran(jatuhTempoStr, tglBayarStr, metodeStr = "") {
     const diffTime = dPaid.getTime() - dDue.getTime();
     const diffDays = Math.round(diffTime / (1000 * 3600 * 24));
 
+    // Selisih > 120 hari hampir pasti salah data (periode/tempo/tanggal bayar keliru), beri penanda
+    const catatanCek = Math.abs(diffDays) > 120 ? " ⚠ cek data" : "";
+
     // Toleransi khusus CASH: telat sampai H+TOLERANSI_HARI_CASH masih dianggap Tepat Waktu
     const toleransi = isMetodeCash(metodeStr) ? TOLERANSI_HARI_CASH : 0;
 
@@ -2655,16 +2666,16 @@ function evalKetepatanPembayaran(jatuhTempoStr, tglBayarStr, metodeStr = "") {
             isTelat: false,
             statusText: "Tepat Waktu",
             daysDiff: Math.abs(diffDays),
-            keterangan: diffDays <= 0
+            keterangan: (diffDays <= 0
                 ? (diffDays === 0 ? "Pas Tanggal Tempo" : `${Math.abs(diffDays)} Hari Lebih Awal`)
-                : `Tepat Waktu (Cash, H+${diffDays})`
+                : `Tepat Waktu (Cash, H+${diffDays})`) + catatanCek
         };
     } else {
         return {
             isTelat: true,
             statusText: "Telat Bayar",
             daysDiff: diffDays,
-            keterangan: `Telat ${diffDays} Hari`
+            keterangan: `Telat ${diffDays} Hari` + catatanCek
         };
     }
 }
@@ -3227,20 +3238,29 @@ function getJatuhTempoDate(item, refYear) {
     const dayNum = parseInt(String(tempoRaw).replace(/[^0-9]/g, ""), 10);
 
     if (!bulanNum || isNaN(dayNum)) return null;
-    return new Date(refYear, bulanNum - 1, dayNum);
+    const akhirBulan = new Date(refYear, bulanNum, 0).getDate(); // tempo tgl 31 di bulan 30 hari -> tgl 30
+    return new Date(refYear, bulanNum - 1, Math.min(dayNum, akhirBulan));
 }
 
-// Ubah (periode + tempo) suatu item jadi string tanggal jatuh tempo lengkap "DD/MM/YYYY",
-// supaya evalKetepatanPembayaran() tidak perlu menebak-nebak bulan dari jarak angka
-// (tebakan lama bisa salah kalau bayar jauh lebih awal dari tanggal tempo, mis. tempo tgl 15
-// periode September tapi dibayar 27 Agustus — malah dikira telat bayar bulan Agustus).
+// Ubah (periode + tempo) suatu item jadi tanggal jatuh tempo lengkap (objek Date).
+// Dikembalikan sebagai Date, BUKAN string "DD/MM/YYYY", supaya tidak dibaca ulang dan
+// tertukar tanggal/bulannya (tempo tgl 1 Oktober dulu terbaca 10 Januari).
+// Tahun dipilih (tahun bayar -1 / 0 / +1) yang jatuh temponya paling dekat dengan tanggal bayar,
+// jadi periode Desember yang dibayar Januari, atau periode Januari yang dibayar Desember, tetap benar.
 function resolveDueDateStringForEval(item, tglBayarStr) {
     if (typeof getJatuhTempoDate !== "function") return null;
     const paidDate = parseToDateObj(tglBayarStr);
-    const refYear = paidDate ? paidDate.getFullYear() : new Date().getFullYear();
-    const dueDate = getJatuhTempoDate(item, refYear);
-    if (!dueDate || isNaN(dueDate.getTime())) return null;
-    return `${String(dueDate.getDate()).padStart(2, '0')}/${String(dueDate.getMonth() + 1).padStart(2, '0')}/${dueDate.getFullYear()}`;
+    const baseYear = paidDate ? paidDate.getFullYear() : new Date().getFullYear();
+
+    let terbaik = null;
+    [baseYear - 1, baseYear, baseYear + 1].forEach(th => {
+        const due = getJatuhTempoDate(item, th);
+        if (!due || isNaN(due.getTime())) return;
+        if (!terbaik) { terbaik = due; return; }
+        if (!paidDate) return;
+        if (Math.abs(paidDate - due) < Math.abs(paidDate - terbaik)) terbaik = due;
+    });
+    return terbaik;
 }
 
 // Fungsi Utama Render Laporan Sesuai Format Dokumen
