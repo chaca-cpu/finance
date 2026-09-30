@@ -313,26 +313,62 @@ function handleGlobalSearch(event) {
 window.handleGlobalSearch = handleGlobalSearch;
 
 // ==========================================
-// TEMA TAMPILAN (Light / Dark Glass)
+// TEMA TAMPILAN — 3 pilihan: light (Terang) · reference (Referensi) · dark (Gelap doff)
 // ==========================================
+const THEMES = ['light', 'reference', 'dark'];
+
 function applyTheme(themeName) {
+    if (THEMES.indexOf(themeName) === -1) themeName = 'light';
     document.body.setAttribute('data-theme', themeName);
     try { localStorage.setItem('cashflow_theme', themeName); } catch (e) { /* storage diblokir, abaikan */ }
+    document.querySelectorAll('.theme-option').forEach(function (btn) {
+        const on = btn.dataset.themeValue === themeName;
+        btn.classList.toggle('active', on);
+        btn.setAttribute('aria-checked', on ? 'true' : 'false');
+    });
 }
 
-function cycleTheme() {
-    const THEMES = ['light', 'dark'];
-    const current = document.body.getAttribute('data-theme') || 'light';
-    const next = THEMES[(THEMES.indexOf(current) + 1) % THEMES.length];
-    applyTheme(next);
+function setTheme(themeName) {
+    applyTheme(themeName);
+    closeThemeMenu();
     if (typeof refreshChartsTheme === 'function') refreshChartsTheme();
 }
+
+// Dipertahankan agar pemanggil lama tetap valid: berpindah ke tema berikutnya
+function cycleTheme() {
+    const current = document.body.getAttribute('data-theme') || 'light';
+    setTheme(THEMES[(THEMES.indexOf(current) + 1) % THEMES.length]);
+}
+
+function toggleThemeMenu(event) {
+    if (event) event.stopPropagation();
+    const menu = document.getElementById('theme-menu');
+    const btn = document.getElementById('btn-theme-toggle');
+    if (!menu) return;
+    const willOpen = menu.hidden;
+    menu.hidden = !willOpen;
+    if (btn) btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+}
+
+function closeThemeMenu() {
+    const menu = document.getElementById('theme-menu');
+    const btn = document.getElementById('btn-theme-toggle');
+    if (menu) menu.hidden = true;
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+}
+
+document.addEventListener('click', function (e) {
+    if (!e.target.closest('.theme-switcher')) closeThemeMenu();
+});
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeThemeMenu();
+});
 
 function initTheme() {
     let saved = 'light';
     try { saved = localStorage.getItem('cashflow_theme') || 'light'; } catch (e) { /* abaikan */ }
     if (saved === 'dark-glass') saved = 'dark'; // migrasi nama tema lama
-    document.body.setAttribute('data-theme', saved);
+    applyTheme(saved);
 }
 
 // ==========================================
@@ -962,13 +998,13 @@ function renderLaporanHarianCashflow() {
             <span>Saldo Awal</span><span>${formatRpWA(cash.cashAwal)}</span>
         </div>
 
-        <div style="margin-top: 12px; font-weight: 700; color: #059669;">Pemasukan</div>
+        <div style="margin-top: 12px; font-weight: 700; color: var(--success-text);">Pemasukan</div>
         ${cash.pemasukanHariIni.length ? cash.pemasukanHariIni.map(i => listItem(i, true)).join("") : '<div class="text-muted" style="padding:4px 0;">Tidak ada pemasukan</div>'}
         <div style="display:flex; justify-content:space-between; padding: 6px 0; border-top: 1px dashed var(--border-subtle); font-weight: 700;">
             <span>Total Masuk</span><span class="amount-in">${formatRpWA(cash.totalPemasukan)}</span>
         </div>
 
-        <div style="margin-top: 14px; font-weight: 700; color: #dc2626;">Pengeluaran</div>
+        <div style="margin-top: 14px; font-weight: 700; color: var(--danger-text);">Pengeluaran</div>
         ${cash.pengeluaranHariIni.length ? cash.pengeluaranHariIni.map(i => listItem(i, false)).join("") : '<div class="text-muted" style="padding:4px 0;">Tidak ada pengeluaran</div>'}
         <div style="display:flex; justify-content:space-between; padding: 6px 0; border-top: 1px dashed var(--border-subtle); font-weight: 700;">
             <span>Total Keluar</span><span class="amount-out">${formatRpWA(cash.totalPengeluaran)}</span>
@@ -1132,7 +1168,7 @@ function renderLaporanHarianCash() {
         </div>
 
         <div class="cash-section-in">
-            <div style="font-weight: 700; color: #059669;">Pemasukan</div>
+            <div style="font-weight: 700; color: var(--success-text);">Pemasukan</div>
             ${r.pemasukanHariIni.length ? r.pemasukanHariIni.map(i => listItem(i, true)).join("") : '<div class="text-muted" style="padding:4px 6px;">Tidak ada pemasukan</div>'}
             <div style="display:flex; justify-content:space-between; padding: 6px 6px 2px 6px; border-top: 1px dashed var(--border-subtle); font-weight: 700;">
                 <span>Total Pemasukan</span><span class="amount-in">${formatRpWA(r.totalPemasukan)}</span>
@@ -1140,7 +1176,7 @@ function renderLaporanHarianCash() {
         </div>
 
         <div class="cash-section-out">
-            <div style="font-weight: 700; color: #dc2626;">Pengeluaran</div>
+            <div style="font-weight: 700; color: var(--danger-text);">Pengeluaran</div>
             ${r.pengeluaranHariIni.length ? r.pengeluaranHariIni.map(i => listItem(i, false)).join("") : '<div class="text-muted" style="padding:4px 6px;">Tidak ada pengeluaran</div>'}
             <div style="display:flex; justify-content:space-between; padding: 6px 6px 2px 6px; border-top: 1px dashed var(--border-subtle); font-weight: 700;">
                 <span>Total Pengeluaran</span><span class="amount-out">${formatRpWA(r.totalPengeluaran)}</span>
@@ -1483,29 +1519,49 @@ function resetFilterPengeluaranALL() {
 // 7. CHARTS & CATEGORY VIEWS
 // ==========================================
 function renderCategoryCharts() {
-    renderSingleCategoryChart('Pemasukan', globalIn, selectedKatIn, 'chartKatPemasukan', 'title-kat-pemasukan', 'sub-kat-pemasukan', '#2f5bea');
-    renderSingleCategoryChart('Pengeluaran', globalOut, selectedKatOut, 'chartKatPengeluaran', 'title-kat-pengeluaran', 'sub-kat-pengeluaran', '#dc2626');
+    renderSingleCategoryChart('Pemasukan', globalIn, selectedKatIn, 'chartKatPemasukan', 'title-kat-pemasukan', 'sub-kat-pemasukan', getChartThemeColors().brand);
+    renderSingleCategoryChart('Pengeluaran', globalOut, selectedKatOut, 'chartKatPengeluaran', 'title-kat-pengeluaran', 'sub-kat-pengeluaran', getChartThemeColors().danger);
 }
 
-if (window.Chart) { Chart.defaults.font.family = "'Plus Jakarta Sans', -apple-system, sans-serif"; }
+if (window.Chart) { Chart.defaults.font.family = "'Inter', -apple-system, BlinkMacSystemFont, sans-serif"; }
+
+// Baca design token dari CSS (styles.css) supaya warna grafik tidak hard-code
+function cssVar(name, fallback) {
+    const v = getComputedStyle(document.body).getPropertyValue(name);
+    return (v && v.trim()) || fallback;
+}
+
+// Hex (#rrggbb) -> rgba(...) untuk isi area transparan
+function hexToRgba(hex, alpha) {
+    const h = String(hex).replace('#', '');
+    if (h.length !== 6) return hex;
+    const n = parseInt(h, 16);
+    return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + alpha + ')';
+}
 
 function getChartThemeColors() {
     const isDark = document.body.getAttribute('data-theme') === 'dark';
+    const c1 = cssVar('--chart-1', '#6c63ff');
+    const c1Soft = cssVar('--chart-1-soft', '#c9c5ff');
+    const c2 = cssVar('--chart-2', '#86d9a5');
     return {
         isDark: isDark,
-        text: isDark ? '#9ca3af' : '#6b7280',
-        grid: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(15,23,42,0.05)',
-        tipBg: isDark ? '#1f232c' : '#ffffff',
-        tipText: isDark ? '#f3f4f6' : '#111827',
-        tipBorder: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(15,23,42,0.08)',
-        // seri 1 = biru (gradasi atas -> bawah), seri 2 = lime, seri 3 = lavender
-        c1Top: isDark ? '#5b84ff' : '#2f5bea',
-        c1Bottom: isDark ? '#3a4f99' : '#9db3ff',
-        c2Top: '#a3e635',
-        c2Bottom: isDark ? '#5c7d1c' : '#e4f9b4',
-        c3: isDark ? '#33406e' : '#c9d6ff',
-        brand: isDark ? '#5b84ff' : '#2f5bea',
-        empty: isDark ? '#262b36' : '#e9ebf0'
+        text: cssVar('--text-secondary', '#6b7280'),
+        grid: cssVar('--chart-grid', 'rgba(15,23,42,0.05)'),
+        tipBg: cssVar('--surface', '#ffffff'),
+        tipText: cssVar('--text-primary', '#202124'),
+        tipBorder: cssVar('--border', '#e8eaed'),
+        // Batang datar (tanpa gradasi): seri 1 = aksen, seri 2 = hijau lembut, seri 3 = abu
+        c1Top: c1,
+        c1Bottom: c1,
+        c2Top: c2,
+        c2Bottom: c2,
+        c3: cssVar('--chart-3', '#d3d7e0'),
+        c1Soft: c1Soft,
+        brand: c1,
+        spark: cssVar('--chart-spark', c1),
+        danger: cssVar('--danger', '#ef4444'),
+        empty: cssVar('--chart-empty', '#eceef2')
     };
 }
 
@@ -1545,9 +1601,9 @@ function buildTrendBarChart(canvasId, labels, seriesDefs) {
                     label: d.label,
                     data: d.data,
                     backgroundColor: makeBarGradient(d.top, d.bottom),
-                    borderRadius: 12,
+                    borderRadius: 4,
                     borderSkipped: false,
-                    maxBarThickness: 38,
+                    maxBarThickness: 28,
                     categoryPercentage: 0.7,
                     barPercentage: 0.9
                 };
@@ -1561,7 +1617,7 @@ function buildTrendBarChart(canvasId, labels, seriesDefs) {
                 legend: {
                     position: 'top',
                     align: 'end',
-                    labels: { color: t.text, usePointStyle: true, pointStyle: 'circle', boxWidth: 8, boxHeight: 8, padding: 16, font: { size: 12, weight: '600' } }
+                    labels: { color: t.text, usePointStyle: true, pointStyle: 'circle', boxWidth: 8, boxHeight: 8, padding: 14, font: { size: 11.5, weight: '500' } }
                 },
                 tooltip: {
                     backgroundColor: t.tipBg,
@@ -1569,13 +1625,13 @@ function buildTrendBarChart(canvasId, labels, seriesDefs) {
                     bodyColor: t.tipText,
                     borderColor: t.tipBorder,
                     borderWidth: 1,
-                    padding: 12,
-                    cornerRadius: 12,
+                    padding: 10,
+                    cornerRadius: 8,
                     displayColors: true,
                     boxPadding: 4,
                     usePointStyle: true,
-                    titleFont: { size: 12, weight: '700' },
-                    bodyFont: { size: 12 },
+                    titleFont: { size: 11.5, weight: '600' },
+                    bodyFont: { size: 11.5 },
                     callbacks: { label: function (c) { return c.dataset.label + ': ' + formatIDR(c.parsed.y); } }
                 }
             },
@@ -1608,7 +1664,7 @@ function renderSparkline(values) {
             labels: data.map(function (_, i) { return i + 1; }),
             datasets: [{
                 data: data,
-                borderColor: t.brand,
+                borderColor: t.spark,
                 borderWidth: 2,
                 fill: 'start',
                 tension: 0.45,
@@ -1617,8 +1673,8 @@ function renderSparkline(values) {
                     const area = context.chart.chartArea;
                     if (!area) return 'transparent';
                     const g = context.chart.ctx.createLinearGradient(0, area.top, 0, area.bottom);
-                    g.addColorStop(0, t.isDark ? 'rgba(91,132,255,0.35)' : 'rgba(47,91,234,0.28)');
-                    g.addColorStop(1, 'rgba(47,91,234,0)');
+                    g.addColorStop(0, hexToRgba(t.spark, t.isDark ? 0.3 : 0.2));
+                    g.addColorStop(1, hexToRgba(t.spark, 0));
                     return g;
                 }
             }]
@@ -1660,8 +1716,8 @@ function renderDonutKomposisi(totalIn, totalOut) {
                 data: adaData ? values : [1],
                 backgroundColor: adaData ? [t.c1Top, t.c2Top, t.c3] : [t.empty],
                 borderWidth: 0,
-                borderRadius: adaData ? 14 : 0,
-                spacing: adaData ? 4 : 0
+                borderRadius: adaData ? 6 : 0,
+                spacing: adaData ? 3 : 0
             }]
         },
         options: {
@@ -1680,7 +1736,7 @@ function renderDonutKomposisi(totalIn, totalOut) {
                     borderColor: t.tipBorder,
                     borderWidth: 1,
                     padding: 10,
-                    cornerRadius: 12,
+                    cornerRadius: 8,
                     callbacks: { label: function (c) { return c.label + ': ' + formatIDR(c.parsed); } }
                 }
             }
@@ -1770,12 +1826,12 @@ function renderSingleCategoryChart(type, dataList, selectedCategory, canvasId, t
     const isBar = selectedCategory === 'ALL';
 
     const gradBar = ctx.createLinearGradient(0, 0, 0, 230);
-    gradBar.addColorStop(0, colorTheme);
-    gradBar.addColorStop(1, colorTheme + '66');
+    gradBar.addColorStop(0, colorTheme + 'cc');
+    gradBar.addColorStop(1, colorTheme + '80');
     let fillStyle = gradBar;
     if (!isBar) {
         const gradientCat = ctx.createLinearGradient(0, 0, 0, 230);
-        gradientCat.addColorStop(0, colorTheme + '40');
+        gradientCat.addColorStop(0, colorTheme + '26');
         gradientCat.addColorStop(1, colorTheme + '00');
         fillStyle = gradientCat;
     }
@@ -1789,16 +1845,16 @@ function renderSingleCategoryChart(type, dataList, selectedCategory, canvasId, t
                 data: values,
                 backgroundColor: fillStyle,
                 borderColor: colorTheme,
-                borderWidth: isBar ? 0 : 3,
-                borderRadius: isBar ? 12 : 0,
+                borderWidth: isBar ? 0 : 2,
+                borderRadius: isBar ? 4 : 0,
                 borderSkipped: false,
-                maxBarThickness: 34,
+                maxBarThickness: 28,
                 fill: !isBar,
                 tension: 0.45,
                 pointRadius: 0,
                 pointHoverRadius: 5,
                 pointHoverBackgroundColor: colorTheme,
-                pointHoverBorderColor: '#ffffff',
+                pointHoverBorderColor: themeColors.tipBg,
                 pointHoverBorderWidth: 2
             }]
         },
@@ -1815,7 +1871,7 @@ function renderSingleCategoryChart(type, dataList, selectedCategory, canvasId, t
                     borderColor: themeColors.tipBorder,
                     borderWidth: 1,
                     padding: 10,
-                    cornerRadius: 10,
+                    cornerRadius: 8,
                     displayColors: false,
                     titleFont: { size: 10, weight: '700' },
                     bodyFont: { size: 10 },
@@ -2040,7 +2096,7 @@ function renderCategoryViews() {
             const safeCat = cat.replace(/'/g, "\\'"); 
 
             inGrid.innerHTML += `
-                <div class="kategori-card ${isActive ? 'active-in' : ''}" style="border-left: 4px solid var(--brand); cursor: pointer;" onclick="filterCategoryTrend('Pemasukan', '${safeCat}')">
+                <div class="kategori-card ${isActive ? 'active-in' : ''}" style="border-left: 3px solid var(--primary); cursor: pointer;" onclick="filterCategoryTrend('Pemasukan', '${safeCat}')">
                     <div class="k-title">${cat}</div>
                     <div class="k-val" style="color: var(--brand);">${formatIDR(inCatMap[cat])}</div>
                 </div>
@@ -2062,9 +2118,9 @@ function renderCategoryViews() {
             const safeCat = cat.replace(/'/g, "\\'");
 
             outGrid.innerHTML += `
-                <div class="kategori-card ${isActive ? 'active-out' : ''}" style="border-left: 4px solid #dc2626; cursor: pointer;" onclick="filterCategoryTrend('Pengeluaran', '${safeCat}')">
+                <div class="kategori-card ${isActive ? 'active-out' : ''}" style="border-left: 3px solid var(--danger); cursor: pointer;" onclick="filterCategoryTrend('Pengeluaran', '${safeCat}')">
                     <div class="k-title">${cat}</div>
-                    <div class="k-val" style="color: #dc2626;">${formatIDR(outCatMap[cat])}</div>
+                    <div class="k-val" style="color: var(--danger-text);">${formatIDR(outCatMap[cat])}</div>
                 </div>
             `;
         });
@@ -2915,7 +2971,7 @@ async function fetchArsipUntukArchive(bulan, tahun) {
     if (judul) judul.textContent = `Laporan Bulanan — ${NAMA_BULAN_ARSIP[bulan - 1]} ${tahun}`;
 
     if (API_URL_ARSIP_KETEPATAN.includes("GANTI_DENGAN_URL")) {
-        if (isi) isi.innerHTML = `<p class="text-center" style="padding:20px; color:#dc2626;">URL API Arsip belum diisi. Buka app.js, cari <code>API_URL_ARSIP_KETEPATAN</code>, lalu ganti dengan URL Web App hasil deploy .gs Anda.</p>`;
+        if (isi) isi.innerHTML = `<p class="text-center" style="padding:20px; color:var(--danger-text);">URL API Arsip belum diisi. Buka app.js, cari <code>API_URL_ARSIP_KETEPATAN</code>, lalu ganti dengan URL Web App hasil deploy .gs Anda.</p>`;
         return;
     }
 
@@ -2926,7 +2982,7 @@ async function fetchArsipUntukArchive(bulan, tahun) {
         const json = await res.json();
 
         if (json.status !== "success") {
-            if (isi) isi.innerHTML = `<p class="text-center" style="padding:20px; color:#dc2626;">${json.message || "Gagal memuat data arsip."}</p>`;
+            if (isi) isi.innerHTML = `<p class="text-center" style="padding:20px; color:var(--danger-text);">${json.message || "Gagal memuat data arsip."}</p>`;
             globalArsipKetepatan = [];
             return;
         }
@@ -2934,7 +2990,7 @@ async function fetchArsipUntukArchive(bulan, tahun) {
         globalArsipKetepatan = json.data || [];
         renderLaporanArchiveBulanan(bulan, tahun);
     } catch (err) {
-        if (isi) isi.innerHTML = `<p class="text-center" style="padding:20px; color:#dc2626;">Gagal menghubungi server arsip: ${err.message}</p>`;
+        if (isi) isi.innerHTML = `<p class="text-center" style="padding:20px; color:var(--danger-text);">Gagal menghubungi server arsip: ${err.message}</p>`;
     }
 }
 
@@ -3821,9 +3877,100 @@ window.handleLogin = handleLogin;
 window.handleLogout = handleLogout;
 window.handleParentMenuClick = handleParentMenuClick;
 window.cycleTheme = cycleTheme;
+window.setTheme = setTheme;
+window.toggleThemeMenu = toggleThemeMenu;
+
+
+// ==========================================
+// POPUP PENGINGAT CHECKLIST — tampil di SEMUA halaman, pojok kanan atas.
+// Mengambil ulang daftar alert (read-only: action=list) tiap CK_TOAST_INTERVAL_MS
+// dan hanya tampil jika ada catatan jatuh tempo (H-3 s/d hari ini).
+// ==========================================
+const CK_TOAST_INTERVAL_MS = 10000; // jeda antar popup (10 detik)
+const CK_TOAST_VISIBLE_MS = 6000;   // lama popup tampil sebelum menutup sendiri
+let ckToastHideTimer = null;
+let ckToastRemoveTimer = null;
+
+function ckToastRoot() {
+    let root = document.getElementById('ck-toast-root');
+    if (!root) {
+        root = document.createElement('div');
+        root.id = 'ck-toast-root';
+        root.className = 'ck-toast-root';
+        root.setAttribute('aria-live', 'polite');
+        document.body.appendChild(root);
+    }
+    return root;
+}
+
+function ckHideToast() {
+    clearTimeout(ckToastHideTimer);
+    const root = document.getElementById('ck-toast-root');
+    if (!root) return;
+    const toast = root.firstElementChild;
+    if (!toast) return;
+    toast.classList.remove('show');
+    clearTimeout(ckToastRemoveTimer);
+    ckToastRemoveTimer = setTimeout(function () { root.innerHTML = ''; }, 250);
+}
+
+function ckShowToast(alerts) {
+    const root = ckToastRoot();
+    clearTimeout(ckToastHideTimer);
+    clearTimeout(ckToastRemoveTimer);
+
+    const MAX_ROWS = 3;
+    const rows = alerts.slice(0, MAX_ROWS).map(function (item) {
+        const today = item._sisaHari == 0;
+        return '<div class="ck-toast-item">' +
+            '<span class="ck-toast-name">' + escHtml(item.namaCatatan) + '</span>' +
+            '<span class="ck-toast-badge' + (today ? ' today' : '') + '">' + (today ? 'Hari ini' : 'H-' + item._sisaHari) + '</span>' +
+            '</div>';
+    }).join('');
+    const more = alerts.length > MAX_ROWS ? '<div class="ck-toast-more">+' + (alerts.length - MAX_ROWS) + ' catatan lainnya</div>' : '';
+
+    root.innerHTML =
+        '<div class="ck-toast" role="alert">' +
+            '<div class="ck-toast-head">' +
+                '<span class="ck-toast-icon" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>' +
+                '<span class="ck-toast-title">' + alerts.length + ' pengingat jatuh tempo</span>' +
+                '<button type="button" class="ck-toast-close" aria-label="Tutup pengingat">&times;</button>' +
+            '</div>' +
+            '<div class="ck-toast-list">' + rows + '</div>' + more +
+        '</div>';
+
+    const toast = root.firstElementChild;
+    toast.addEventListener('click', function (e) {
+        if (e.target.closest('.ck-toast-close')) { e.stopPropagation(); ckHideToast(); return; }
+        ckHideToast();
+        if (typeof navigateTo === 'function') navigateTo('ceklis');
+    });
+    requestAnimationFrame(function () { toast.classList.add('show'); });
+    ckToastHideTimer = setTimeout(ckHideToast, CK_TOAST_VISIBLE_MS);
+}
+
+function ckPollAlerts() {
+    const shell = document.getElementById('app-shell');
+    if (!shell || !shell.classList.contains('app-visible')) return; // belum login
+    if (document.hidden) return;                                     // tab tidak aktif
+    fetch('index.php?action=list', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+            if (!data || !data.success) return;
+            const dot = document.getElementById('bell-dot');
+            if (dot) dot.hidden = !(data.alerts && data.alerts.length);
+            if (data.alerts && data.alerts.length) ckShowToast(data.alerts);
+        })
+        .catch(function () { /* gagal jaringan: diam saja, coba lagi di putaran berikutnya */ });
+}
+
+function initCeklisToast() {
+    setInterval(ckPollAlerts, CK_TOAST_INTERVAL_MS);
+}
 
 document.addEventListener("DOMContentLoaded", () => {
     initTheme();
+    initCeklisToast();
     try { checkSession(); } catch (e) { showLogin(); }
     initFilterTempo();
     fetchData();

@@ -239,7 +239,7 @@ if (isset($_GET['action']) && in_array($_GET['action'], ['toggle', 'delete', 'li
     <!-- Font Inter & Chart.js -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="styles.css">
 </head>
@@ -289,13 +289,23 @@ if (isset($_GET['action']) && in_array($_GET['action'], ['toggle', 'delete', 'li
         </div>
 
         <div class="header-right">
-            <button onclick="openAddModal('pemasukan')" class="btn-primary-add">+ Masuk</button>
-            <button onclick="openAddModal('pengeluaran')" class="btn-primary-add">+ Keluar</button>
-            <button onclick="openAddModal('setoran')" class="btn-primary-add">+ Setor</button>
 
-            <button class="btn-theme-toggle" onclick="cycleTheme()" aria-label="Ganti tema terang/gelap" title="Ganti tema">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
-            </button>
+            <div class="theme-switcher">
+                <button class="btn-theme-toggle" onclick="toggleThemeMenu(event)" aria-label="Pilih tema tampilan" aria-haspopup="true" aria-expanded="false" id="btn-theme-toggle" title="Pilih tema">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.9 0 1.7-.8 1.7-1.7 0-.4-.2-.8-.4-1.1-.3-.3-.4-.7-.4-1.1 0-.9.8-1.7 1.7-1.7H16c3 0 5.5-2.5 5.5-5.5C21.5 6 17.2 2 12 2z"/></svg>
+                </button>
+                <div class="theme-menu" id="theme-menu" role="menu" hidden>
+                    <button type="button" class="theme-option" role="menuitemradio" data-theme-value="light" onclick="setTheme('light')">
+                        <span class="theme-swatch swatch-light"><i></i><i></i></span><span class="theme-name">Terang</span>
+                    </button>
+                    <button type="button" class="theme-option" role="menuitemradio" data-theme-value="reference" onclick="setTheme('reference')">
+                        <span class="theme-swatch swatch-reference"><i></i><i></i></span><span class="theme-name">Referensi</span>
+                    </button>
+                    <button type="button" class="theme-option" role="menuitemradio" data-theme-value="dark" onclick="setTheme('dark')">
+                        <span class="theme-swatch swatch-dark"><i></i><i></i></span><span class="theme-name">Gelap doff</span>
+                    </button>
+                </div>
+            </div>
 
             <?php $ckJumlahAlertHeader = count(ckBuildResponse($dbCeklis, '', 'ALL', 'ALL')['alerts']); ?>
             <button class="btn-bell" onclick="navigateTo('ceklis')" aria-label="Pengingat jatuh tempo" title="Pengingat jatuh tempo">
@@ -376,7 +386,7 @@ if (isset($_GET['action']) && in_array($_GET['action'], ['toggle', 'delete', 'li
                 </button>
 
                 <button class="menu-btn sub-menu-btn" id="nav-pengeluaran-all" onclick="navigateTo('pengeluaran-all')">
-                    <svg class="menu-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg>
+                    <svg class="menu-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg>
                     <span class="menu-text">Pengeluaran ALL</span>
                 </button>
 
@@ -431,32 +441,32 @@ if (isset($_GET['action']) && in_array($_GET['action'], ['toggle', 'delete', 'li
             <div id="dashboard-cash-view">
             <div class="metrics-grid metrics-5">
                 <div class="card-stat">
-                    <div class="stat-header"><span>Pemasukan</span><div class="stat-icon" aria-hidden="true">↗</div></div>
+                    <div class="stat-header"><span>Pemasukan</span><div class="stat-icon" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg></div></div>
                     <div class="stat-value" id="stat-pemasukan">Rp 0</div>
                     <div class="stat-desc">Kas masuk</div>
                 </div>
 
                 <div class="card-stat">
-                    <div class="stat-header"><span>Pengeluaran</span><div class="stat-icon" aria-hidden="true">↗</div></div>
+                    <div class="stat-header"><span>Pengeluaran</span><div class="stat-icon" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg></div></div>
                     <div class="stat-value" id="stat-pengeluaran">Rp 0</div>
                     <div class="stat-desc">Kas keluar</div>
                 </div>
 
                 <div class="card-stat has-spark">
-                    <div class="stat-header"><span>Saldo Bersih</span><div class="stat-icon" aria-hidden="true">↗</div></div>
+                    <div class="stat-header"><span>Saldo Bersih</span><div class="stat-icon" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg></div></div>
                     <div class="stat-value" id="stat-saldo">Rp 0</div>
                     <div class="stat-desc">Selisih bersih</div>
                     <div class="stat-spark"><canvas id="chartSpark"></canvas></div>
                 </div>
 
                 <div class="card-stat">
-                    <div class="stat-header"><span>Cash Ter-setor</span><div class="stat-icon" aria-hidden="true">↗</div></div>
+                    <div class="stat-header"><span>Cash Ter-setor</span><div class="stat-icon" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg></div></div>
                     <div class="stat-value" id="stat-setor">Rp 0</div>
                     <div class="stat-desc">Sudah masuk bank</div>
                 </div>
 
                 <div class="card-stat">
-                    <div class="stat-header"><span>Cash Kantor</span><div class="stat-icon" aria-hidden="true">↗</div></div>
+                    <div class="stat-header"><span>Cash Kantor</span><div class="stat-icon" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg></div></div>
                     <div class="stat-value" id="stat-cash-kantor">Rp 0</div>
                     <div class="stat-desc">Belum tersetor</div>
                 </div>
@@ -546,22 +556,22 @@ if (isset($_GET['action']) && in_array($_GET['action'], ['toggle', 'delete', 'li
             <div id="dashboard-cashflow-view" style="display:none;">
                 <div class="metrics-grid metrics-4 mb-4">
                     <div class="card-stat card-blue">
-                        <div class="stat-header"><span>Total Transaksi</span><div class="stat-icon" aria-hidden="true">↗</div></div>
+                        <div class="stat-header"><span>Total Transaksi</span><div class="stat-icon" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg></div></div>
                         <div class="stat-value" id="cf-stat-total-transaksi">0</div>
                         <div class="stat-desc">Seluruh Pembayaran Masuk</div>
                     </div>
                     <div class="card-stat card-emerald">
-                        <div class="stat-header"><span>Total Nominal</span><div class="stat-icon" aria-hidden="true">↗</div></div>
+                        <div class="stat-header"><span>Total Nominal</span><div class="stat-icon" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg></div></div>
                         <div class="stat-value" id="cf-stat-total-nominal">Rp 0</div>
                         <div class="stat-desc">Akumulasi Seluruh Pembayaran</div>
                     </div>
                     <div class="card-stat card-blue">
-                        <div class="stat-header"><span>Via Cash</span><div class="stat-icon" aria-hidden="true">↗</div></div>
+                        <div class="stat-header"><span>Via Cash</span><div class="stat-icon" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg></div></div>
                         <div class="stat-value" id="cf-stat-nominal-cash">Rp 0</div>
                         <div class="stat-desc">Dibayar Tunai</div>
                     </div>
                     <div class="card-stat card-amber">
-                        <div class="stat-header"><span>Via Transfer</span><div class="stat-icon" aria-hidden="true">↗</div></div>
+                        <div class="stat-header"><span>Via Transfer</span><div class="stat-icon" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg></div></div>
                         <div class="stat-value" id="cf-stat-nominal-transfer">Rp 0</div>
                         <div class="stat-desc">Dibayar Non-Tunai</div>
                     </div>
@@ -589,7 +599,7 @@ if (isset($_GET['action']) && in_array($_GET['action'], ['toggle', 'delete', 'li
                 </div>
 
                 <div class="table-card mb-4">
-                    <div class="chart-header" style="padding: 14px 16px 4px 16px;">
+                    <div class="chart-header" style="padding: 16px 16px 4px;">
                         <h4>Pembayaran Terbaru</h4>
                         <p>10 pembayaran pelanggan paling baru (seluruh metode)</p>
                     </div>
@@ -618,6 +628,11 @@ if (isset($_GET['action']) && in_array($_GET['action'], ['toggle', 'delete', 'li
             <div class="page-header">
                 <h2>Riwayat Transaksi Keuangan</h2>
                 <p>Daftar transaksi kas masuk dan pengeluaran operasional.</p>
+                <div class="page-actions">
+                    <button type="button" onclick="openAddModal('pemasukan')" class="btn-primary-add">+ Masuk</button>
+                    <button type="button" onclick="openAddModal('pengeluaran')" class="btn-primary-add">+ Keluar</button>
+                    <button type="button" onclick="openAddModal('setoran')" class="btn-primary-add">+ Setor</button>
+                </div>
                 <div class="mode-toggle" data-page="transaksi">
                     <button type="button" class="mode-btn active" data-mode="cash" onclick="setDataMode('cash')">Cash</button>
                     <button type="button" class="mode-btn" data-mode="cashflow" onclick="setDataMode('cashflow')">Cashflow</button>
@@ -968,7 +983,7 @@ if (isset($_GET['action']) && in_array($_GET['action'], ['toggle', 'delete', 'li
         <div class="card-stat card-amber">
             <div class="stat-header">
                 <span>Total Pengeluaran All</span>
-                <div class="stat-icon" aria-hidden="true">↗</div>
+                <div class="stat-icon" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg></div>
             </div>
             <div class="stat-value" id="stat-total-pengeluaran-all">Rp 0</div>
             <div class="stat-desc">Akumulasi Pengeluaran</div>
@@ -979,11 +994,11 @@ if (isset($_GET['action']) && in_array($_GET['action'], ['toggle', 'delete', 'li
     <div class="filter-bar">
         <div class="filter-group" style="align-items: flex-end;">
             <div>
-                <label style="font-size: 11px; font-weight: 600; color: #64748b; display: block; margin-bottom: 4px;">Filter Bulan</label>
+                <label style="display: block; margin-bottom: 4px;">Filter Bulan</label>
                 <input type="month" id="filter-bulan-pengeluaran-all" class="form-control" onchange="filterPengeluaranALL()">
             </div>
             <div>
-                <label style="font-size: 11px; font-weight: 600; color: #64748b; display: block; margin-bottom: 4px;">Filter Spesifik Tanggal</label>
+                <label style="display: block; margin-bottom: 4px;">Filter Spesifik Tanggal</label>
                 <input type="date" id="filter-tanggal-pengeluaran-all" class="form-control" onchange="filterPengeluaranALL()">
             </div>
             <button type="button" class="btn-reset-filter" onclick="resetFilterPengeluaranALL()" style="padding: 8px 14px; height: 38px;">Reset Filter</button>
@@ -1030,7 +1045,7 @@ if (isset($_GET['action']) && in_array($_GET['action'], ['toggle', 'delete', 'li
         <div class="filter-bar" style="margin-bottom: 20px;">
             <div class="filter-group" style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
                 <div>
-                    <label style="font-size: 11px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Tanggal</label>
+                    <label style="display: block; margin-bottom: 4px;">Tanggal</label>
                     <input type="date" id="filter-tanggal-harian" class="form-control" onchange="renderLaporanHarianCash()">
                 </div>
                 <button type="button" class="btn-reset-filter" onclick="salinLaporanHarianKeWA()">📋 Salin ke WhatsApp</button>
@@ -1038,7 +1053,7 @@ if (isset($_GET['action']) && in_array($_GET['action'], ['toggle', 'delete', 'li
         </div>
 
         <div class="table-card" style="max-width: 480px;">
-            <div class="chart-header" style="padding: 14px 16px 4px 16px;">
+            <div class="chart-header" style="padding: 16px 16px 4px;">
                 <h4 id="judul-laporan-harian">Ringkasan Cashflow Harian</h4>
                 <p>Cash awal dihitung otomatis dari akumulasi saldo hari-hari sebelumnya.</p>
             </div>
@@ -1060,14 +1075,14 @@ if (isset($_GET['action']) && in_array($_GET['action'], ['toggle', 'delete', 'li
             <div class="filter-bar" style="margin-bottom: 20px;">
                 <div class="filter-group" style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
                     <div>
-                        <label style="font-size: 11px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Tanggal</label>
+                        <label style="display: block; margin-bottom: 4px;">Tanggal</label>
                         <input type="date" id="cashflow-harian-tanggal" class="form-control" onchange="renderLaporanHarianCashflow()">
                     </div>
                 </div>
             </div>
 
             <div class="table-card" style="max-width: 480px;">
-                <div class="chart-header" style="padding: 14px 16px 4px 16px; display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">
+                <div class="chart-header" style="padding: 16px 16px 4px; display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">
                     <div>
                         <h4 id="judul-laporan-harian-cashflow">Laporan Harian Finance</h4>
                         <p>Cashflow Cash harian + rekap pembayaran via Cash &amp; Transfer.</p>
@@ -1085,7 +1100,7 @@ if (isset($_GET['action']) && in_array($_GET['action'], ['toggle', 'delete', 'li
         <div class="filter-bar" style="margin-bottom: 20px;">
             <div class="filter-group" style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
                 <div>
-                    <label style="font-size: 11px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Bulan</label>
+                    <label style="display: block; margin-bottom: 4px;">Bulan</label>
                     <select id="filter-bulan-laporan" class="form-control" onchange="renderLaporanPeriode()">
                         <option value="1">Januari</option>
                         <option value="2">Februari</option>
@@ -1102,7 +1117,7 @@ if (isset($_GET['action']) && in_array($_GET['action'], ['toggle', 'delete', 'li
                     </select>
                 </div>
                 <div>
-                    <label style="font-size: 11px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Tahun</label>
+                    <label style="display: block; margin-bottom: 4px;">Tahun</label>
                     <select id="filter-tahun-laporan" class="form-control" onchange="renderLaporanPeriode()">
                         <option value="2024">2024</option>
                         <option value="2025">2025</option>
@@ -1110,7 +1125,7 @@ if (isset($_GET['action']) && in_array($_GET['action'], ['toggle', 'delete', 'li
                     </select>
                 </div>
                 <div>
-                    <label style="font-size: 11px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Periode Minggu</label>
+                    <label style="display: block; margin-bottom: 4px;">Periode Minggu</label>
                     <select id="filter-minggu-laporan" class="form-control" onchange="renderLaporanPeriode()">
                         <option value="all" selected>Bulanan (Semua Minggu / Tanggal 1 s/d 31)</option>
                         <option value="1">Minggu ke-1 / Tanggal 1 s/d 7</option>
@@ -1124,7 +1139,7 @@ if (isset($_GET['action']) && in_array($_GET['action'], ['toggle', 'delete', 'li
         </div>
 
         <div class="table-card" style="max-width: 480px;">
-            <div class="chart-header" style="padding: 14px 16px 4px 16px; display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">
+            <div class="chart-header" style="padding: 16px 16px 4px; display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">
                 <div>
                     <h4 id="judul-laporan-periode">Laporan Finance</h4>
                     <p>Ringkasan otomatis dari data pelanggan &amp; pengeluaran.</p>
@@ -1150,7 +1165,7 @@ if (isset($_GET['action']) && in_array($_GET['action'], ['toggle', 'delete', 'li
     <div class="archive-tab-bar" id="archive-tab-bar"></div>
 
     <div class="table-card" style="max-width: 480px;">
-        <div class="chart-header" style="padding: 14px 16px 4px 16px;">
+        <div class="chart-header" style="padding: 16px 16px 4px;">
             <h4 id="judul-laporan-archive">Laporan Bulanan</h4>
             <p>Data dari arsip Spreadsheet Pembayaran Pelanggan.</p>
         </div>
@@ -1175,11 +1190,11 @@ if (isset($_GET['action']) && in_array($_GET['action'], ['toggle', 'delete', 'li
     <div class="filter-bar" style="margin-bottom: 20px;">
         <div class="filter-group" style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
             <div id="rekap-bank-filter-harian">
-                <label style="font-size: 11px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Tanggal</label>
+                <label style="display: block; margin-bottom: 4px;">Tanggal</label>
                 <input type="date" id="rekap-bank-tanggal" class="form-control" onchange="renderRekapBank()">
             </div>
             <div id="rekap-bank-filter-bulan-tahun" style="display:none;">
-                <label style="font-size: 11px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Bulan</label>
+                <label style="display: block; margin-bottom: 4px;">Bulan</label>
                 <select id="rekap-bank-bulan" class="form-control" onchange="renderRekapBank()">
                     <option value="1">Januari</option><option value="2">Februari</option><option value="3">Maret</option>
                     <option value="4">April</option><option value="5">Mei</option><option value="6">Juni</option>
@@ -1188,13 +1203,13 @@ if (isset($_GET['action']) && in_array($_GET['action'], ['toggle', 'delete', 'li
                 </select>
             </div>
             <div id="rekap-bank-filter-tahun" style="display:none;">
-                <label style="font-size: 11px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Tahun</label>
+                <label style="display: block; margin-bottom: 4px;">Tahun</label>
                 <select id="rekap-bank-tahun" class="form-control" onchange="renderRekapBank()">
                     <option value="2024">2024</option><option value="2025">2025</option><option value="2026" selected>2026</option>
                 </select>
             </div>
             <div id="rekap-bank-filter-minggu" style="display:none;">
-                <label style="font-size: 11px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Minggu Ke-</label>
+                <label style="display: block; margin-bottom: 4px;">Minggu Ke-</label>
                 <select id="rekap-bank-minggu" class="form-control" onchange="renderRekapBank()">
                     <option value="1">Minggu ke-1 / Tanggal 1 s/d 7</option>
                     <option value="2" selected>Minggu ke-2 / Tanggal 8 s/d 14</option>
@@ -1207,7 +1222,7 @@ if (isset($_GET['action']) && in_array($_GET['action'], ['toggle', 'delete', 'li
     </div>
 
     <div class="table-card" style="max-width: 480px;">
-        <div class="chart-header" style="padding: 14px 16px 4px 16px; display:flex; align-items:flex-start; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+        <div class="chart-header" style="padding: 16px 16px 4px; display:flex; align-items:flex-start; justify-content:space-between; gap:10px; flex-wrap:wrap;">
             <div>
                 <h4 id="judul-rekap-bank">Rekap Per Bank</h4>
                 <p>Total nominal masuk dikelompokkan per bank/metode pembayaran.</p>
@@ -1270,98 +1285,10 @@ foreach ($dbCeklis['items'] as $item) {
 usort($alertsAwal, function($a, $b) { return $a['_sisaHari'] <=> $b['_sisaHari']; });
 
 // Palet warna aksen kartu per kategori (berulang jika kategori lebih banyak dari palet)
-$ckPalet = ['#2f5bea', '#84cc16', '#8aa2ff', '#1e43c4', '#b8f04a', '#5b84ff'];
+$ckPalet = ['#6c63ff', '#3b82f6', '#22c55e', '#f59e0b', '#a78bfa', '#14b8a6'];
 ?>
 
-<!-- Style Khusus Modul Checklist (selaras dengan desain dashboard: biru royal + lime) -->
-<style>
-    .ck-wrapper { font-family: inherit; color: var(--text-dark); width: 100%; }
-
-    /* Alert pengingat jatuh tempo — merah sebagai warna semantik */
-    .ck-alert-box { background: #fff1f2; border-radius: 20px; padding: 16px 20px; margin-bottom: 20px; }
-    .ck-alert-header { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14px; color: #b91c1c; margin-bottom: 12px; }
-    .ck-alert-list { display: flex; flex-direction: column; gap: 8px; }
-    .ck-alert-item { display: flex; justify-content: space-between; align-items: center; gap: 10px; background: #ffffff; border-radius: 14px; padding: 10px 14px; }
-    .ck-alert-name { font-size: 13.5px; font-weight: 600; color: #7f1d1d; }
-    .ck-alert-sub { font-size: 12px; color: #b91c1c; opacity: 0.85; }
-    .ck-alert-badge { font-size: 11.5px; font-weight: 700; color: #ffffff; background: #ef4444; padding: 4px 12px; border-radius: 999px; white-space: nowrap; }
-    .ck-alert-badge.today { background: #b91c1c; }
-    body[data-theme="dark"] .ck-alert-box { background: rgba(248, 113, 113, 0.1); }
-    body[data-theme="dark"] .ck-alert-item { background: var(--bg-white); }
-    body[data-theme="dark"] .ck-alert-name, body[data-theme="dark"] .ck-alert-sub, body[data-theme="dark"] .ck-alert-header { color: #fca5a5; }
-
-    /* Toolbar */
-    .ck-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
-    .ck-filter-form { display: flex; gap: 10px; align-items: center; flex: 1; max-width: 680px; flex-wrap: wrap; }
-    .ck-input, .ck-select { padding: 10px 12px; border: 1px solid var(--border-subtle); border-radius: 12px; font-size: 12.5px; background: var(--bg-white); color: var(--text-dark); outline: none; transition: border-color 0.15s; }
-    .ck-input:focus, .ck-select:focus { border-color: var(--brand); }
-
-    .ck-btn { padding: 10px 18px; border-radius: 12px; font-weight: 600; font-size: 12.5px; border: none; cursor: pointer; transition: background-color 0.15s, color 0.15s; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
-    .ck-btn-primary { background: var(--brand); color: #ffffff; }
-    .ck-btn-primary:hover { background: var(--brand-dark); }
-    .ck-btn-secondary { background: var(--bg-white); color: var(--text-dark); border: 1px solid var(--border-subtle); }
-    .ck-btn-secondary:hover { background: var(--bg-subtle); }
-
-    /* Grid & kartu kategori */
-    .ck-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 16px; align-items: start; }
-    .ck-card { background: var(--bg-white); border-radius: 20px; padding: 20px; }
-    .ck-card-header { font-size: 15px; font-weight: 700; color: var(--text-dark); padding-bottom: 14px; margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
-    .ck-card-header::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--ck-accent, var(--brand)); flex-shrink: 0; }
-
-    .ck-empty { grid-column: 1 / -1; text-align: center; padding: 48px 20px; color: var(--text-muted); background: var(--bg-white); border-radius: 20px; }
-
-    /* Daftar catatan */
-    .ck-list { padding-left: 0; margin: 0; list-style: none; }
-    .ck-item { margin-bottom: 10px; padding: 14px; border-radius: 16px; background: var(--bg-subtle); transition: background-color 0.15s; }
-    .ck-item:last-child { margin-bottom: 0; }
-    .ck-item.completed { opacity: 0.6; }
-    .ck-item-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
-    .ck-item-left { display: flex; align-items: flex-start; gap: 10px; flex: 1; min-width: 0; }
-
-    .ck-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; background: var(--bg-subtle); cursor: zoom-in; }
-    .ck-avatar-placeholder { width: 40px; height: 40px; border-radius: 50%; background: var(--lavender); color: var(--brand-dark); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; }
-    body[data-theme="dark"] .ck-avatar-placeholder { color: #dbe4ff; }
-
-    /* Checkbox kotak membulat dengan tanda centang */
-    .ck-checkbox { appearance: none; -webkit-appearance: none; width: 20px; height: 20px; border: 2px solid #c5cad6; border-radius: 6px; cursor: pointer; margin-top: 2px; transition: all 0.15s ease; flex-shrink: 0; background: var(--bg-white); position: relative; }
-    .ck-checkbox:checked { background-color: var(--brand); border-color: var(--brand); }
-    .ck-checkbox:checked::after { content: ""; position: absolute; left: 6px; top: 2px; width: 5px; height: 9px; border: solid #ffffff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
-
-    .ck-title { font-weight: 600; font-size: 14px; color: var(--text-dark); word-break: break-word; }
-    .ck-item.completed .ck-title { text-decoration: line-through; color: var(--text-light); }
-    .ck-meta { font-size: 12px; color: var(--text-muted); margin-top: 4px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-    .ck-desc { font-size: 12.5px; color: var(--text-muted); margin-top: 5px; word-break: break-word; }
-    .ck-contact { font-size: 12px; color: var(--text-muted); margin-top: 6px; display: flex; flex-direction: column; gap: 3px; }
-    .ck-contact span { display: flex; align-items: center; gap: 6px; word-break: break-word; }
-    .ck-due-badge { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: var(--lime-soft); color: #4d6b0a; white-space: nowrap; }
-    body[data-theme="dark"] .ck-due-badge { background: rgba(184, 240, 74, 0.16); color: #c6f36b; }
-
-    .ck-btn-del, .ck-btn-edit { color: var(--text-light); background: transparent; border: none; line-height: 1; padding: 4px 7px; border-radius: 8px; transition: all 0.15s; cursor: pointer; flex-shrink: 0; }
-    .ck-btn-del { font-size: 18px; }
-    .ck-btn-edit { font-size: 14px; }
-    .ck-btn-del:hover { color: #ef4444; background: #fef2f2; }
-    .ck-btn-edit:hover { color: var(--brand); background: var(--brand-soft); }
-    .ck-item-actions { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
-
-    /* Lightbox foto */
-    .ck-photo-lightbox { display: none; position: fixed; inset: 0; background: rgba(17, 24, 39, 0.9); z-index: 10050; justify-content: center; align-items: center; padding: 24px; cursor: zoom-out; }
-    .ck-photo-lightbox.show { display: flex; }
-    .ck-photo-lightbox img { max-width: 100%; max-height: 100%; border-radius: 16px; }
-    .ck-photo-lightbox-close { position: absolute; top: 18px; right: 22px; color: #ffffff; font-size: 30px; line-height: 1; cursor: pointer; opacity: 0.85; }
-    .ck-photo-lightbox-close:hover { opacity: 1; }
-
-    /* Modal */
-    .ck-modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(17, 24, 39, 0.45); backdrop-filter: blur(3px); z-index: 9999; justify-content: center; align-items: center; padding: 16px; }
-    .ck-modal-backdrop.show { display: flex; }
-    .ck-modal { background: var(--bg-white); border-radius: 24px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; }
-    .ck-modal-header { position: sticky; top: 0; background: var(--bg-white); padding: 20px 24px 14px; display: flex; justify-content: space-between; align-items: center; z-index: 1; }
-    .ck-modal-title { font-size: 17px; font-weight: 700; color: var(--text-dark); margin: 0; }
-    .ck-modal-body { padding: 6px 24px 20px; }
-    .ck-form-group { margin-bottom: 14px; }
-    .ck-form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
-    .ck-form-hint { font-size: 11.5px; color: var(--text-light); margin-top: 4px; }
-    .ck-modal-footer { position: sticky; bottom: 0; padding: 14px 24px; background: var(--bg-white); display: flex; justify-content: flex-end; gap: 8px; }
-</style>
+<!-- Style modul Checklist kini ada di styles.css (bagian 5) -->
 
 <div class="ck-wrapper">
 
@@ -1674,7 +1601,7 @@ function ckFormatRupiah(num) {
 function ckRenderGrid(grouped) {
     const container = document.getElementById('ck-grid');
     const kategoriList = Object.keys(grouped || {});
-    const palet = ['#2f5bea', '#84cc16', '#8aa2ff', '#1e43c4', '#b8f04a', '#5b84ff'];
+    const palet = ['#6c63ff', '#3b82f6', '#22c55e', '#f59e0b', '#a78bfa', '#14b8a6'];
 
     if (kategoriList.length === 0) {
         container.innerHTML = `
