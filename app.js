@@ -19,6 +19,7 @@ let globalOut = [];
 let currentDataMode = 'cash'; // 'cash' atau 'cashflow' — dikontrol pill toggle di Dashboard/Riwayat Transaksi/Laporan
 let globalTransfer = []; 
 let globalMasterData = []; 
+let globalMasterSumber = ''; // asal Master Data: 'Master Data' (API Validasi) atau '⚠ API Cashflow' (fallback) — ditampilkan di kartu Pemasukan Cashflow
 let masterKatPemasukan = [];
 let masterKatPengeluaran = [];
 let globalSetoran = []; 
@@ -108,12 +109,19 @@ function terapkanDataValidasi(dataValidasi, dataTransaksi) {
     if (!dataValidasi) return false;
 
     if (Array.isArray(dataValidasi)) {
+        globalMasterSumber = 'Master Data';
         processMasterData(dataValidasi);
         return true;
     } else if (typeof dataValidasi === 'object') {
         globalTransfer = dataValidasi.validasiTransfer || dataValidasi.transfer || [];
-        const masterSource = dataValidasi.masterData || dataValidasi.data || dataValidasi.pelanggan || (dataTransaksi && dataTransaksi.masterData);
-        if (masterSource) processMasterData(masterSource);
+        const dariValidasi = dataValidasi.masterData || dataValidasi.data || dataValidasi.pelanggan;
+        const masterSource = dariValidasi || (dataTransaksi && dataTransaksi.masterData);
+        // Penanda sumber: kalau API Validasi tidak membawa Master Data, kode jatuh ke data script Cashflow (fallback lama)
+        globalMasterSumber = dariValidasi ? 'Master Data' : (masterSource ? '⚠ API Cashflow' : '');
+        if (masterSource) {
+            if (!dariValidasi) console.warn('[Master Data] API_URL_VALIDASI tidak punya kunci masterData/data/pelanggan — memakai masterData dari API_URL_TRANSAKSI (Cashflow). Kunci yang ada:', Object.keys(dataValidasi));
+            processMasterData(masterSource);
+        }
         return true;
     }
     return false;
@@ -1018,7 +1026,57 @@ async function salinRekapBankKeWA() {
 }
 
 const NAMA_BULAN_PANJANG = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-const KEYS_TGL_BAYAR = ["tanggalBayar", "Tanggal Bayar", "Tanggal Pembayaran"];
+const KEYS_TGL_BAYAR = ["tanggalBayar", "Tanggal Bayar", "Tanggal Pembayaran", "TGL_BAYAR", "Tgl Bayar", "TGL BAYAR"];
+
+// Menentukan BULAN sebuah pembayaran untuk dashboard Cashflow.
+//  - Bayar LEBIH AWAL dari jatuh tempo (mis. tempo 1 Okt, bayar 29 Sep) -> ikut bulan jatuh tempo (Okt),
+//    sama seperti Laporan Periode yang menghitung tagihan di periode jatuh temponya.
+//  - Bayar tepat waktu / telat -> ikut tanggal bayar (uang diterima di bulan itu).
+// Tanggal bayar dibaca dengan acuan tanggal jatuh tempo, sehingga format ambigu (5/9 vs 9/5)
+// dipilih yang paling dekat dengan jatuh tempo dan tidak tertukar lagi.
+// Mengembalikan null bila tanggal bayar kosong / tidak terbaca.
+function getTanggalPeriodeCashflow(item) {
+    const tglRaw = getValueByKeys(item, KEYS_TGL_BAYAR);
+    const s = String(tglRaw === undefined || tglRaw === null ? "" : tglRaw).trim();
+    if (s === "" || s === "-" || s === "undefined" || s === "null") return null;
+
+    // Tanggal bayar "A/B/YYYY" yang ambigu (dua-duanya <= 12) punya 2 tafsiran: DD/MM dan MM/DD.
+    // Pilih PASANGAN (tanggal bayar, jatuh tempo) yang paling dekat jaraknya, sekaligus menentukan
+    // tahun jatuh tempo (periode+tempo tidak membawa tahun). Tanpa periode/tempo -> DD/MM.
+    const kandidatBayar = [];
+    const m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+    if (m) {
+        const p1 = parseInt(m[1], 10), p2 = parseInt(m[2], 10), y = parseInt(m[3], 10);
+        const mk = (yy, mo, dd) => { const dt = new Date(yy, mo - 1, dd); return (dt.getFullYear() === yy && dt.getMonth() === mo - 1 && dt.getDate() === dd) ? dt : null; };
+        const dmy = mk(y, p2, p1), mdy = mk(y, p1, p2);
+        if (dmy) kandidatBayar.push(dmy);
+        if (mdy && p1 !== p2) kandidatBayar.push(mdy);
+    } else {
+        const one = parseToDateObj(tglRaw);
+        if (one && !isNaN(one.getTime())) kandidatBayar.push(one);
+    }
+    if (kandidatBayar.length === 0) return null;
+
+    const tahunUji = new Set();
+    kandidatBayar.forEach(p => [p.getFullYear() - 1, p.getFullYear(), p.getFullYear() + 1].forEach(t => tahunUji.add(t)));
+    const kandidatTempo = [];
+    if (typeof getJatuhTempoDate === "function") {
+        tahunUji.forEach(t => { const dd = getJatuhTempoDate(item, t); if (dd && !isNaN(dd.getTime())) kandidatTempo.push(dd); });
+    }
+
+    let paid = kandidatBayar[0], due = null, jarak = Infinity;
+    kandidatBayar.forEach(p => kandidatTempo.forEach(dd => {
+        const sc = Math.abs(p - dd);
+        if (sc < jarak) { jarak = sc; paid = p; due = dd; }
+    }));
+
+    // Selisih > 120 hari hampir pasti salah data (periode/tempo keliru): jangan dipakai untuk memindah bulan
+    if (due && Math.abs(paid - due) / 86400000 > 120) due = null;
+
+    const efektif = (due && paid < due) ? due : paid;
+    const dipindah = efektif.getFullYear() !== paid.getFullYear() || efektif.getMonth() !== paid.getMonth();
+    return { tglRaw, paid, due, efektif, dipindah };
+}
 
 // Sumber pengeluaran untuk mode Cashflow: HANYA tab/sheet "Pengeluaran ALL" (globalOutAll) —
 // sama persis dengan halaman Pengeluaran ALL & Laporan Cashflow. Pengeluaran kas (globalOut) tidak dipakai.
@@ -1059,6 +1117,7 @@ function getCashflowSelectedMonth() {
 
 // Satu sumber data untuk seluruh dashboard Cashflow: pemasukan (pembayaran pelanggan) dan
 // pengeluaran, dua-duanya dipotong ke bulan yang dipilih di filter (default: bulan ini).
+// Pemasukan masuk ke bulan jatuh tempo bila dibayar lebih awal (lihat getTanggalPeriodeCashflow).
 function getCashflowDashboardData() {
     const allPaid = getPaidMasterEntries();
     const allOut = getPengeluaranCashflowEntries();
@@ -1069,14 +1128,14 @@ function getCashflowDashboardData() {
     const paid = [];
     let cash = 0, transfer = 0;
     allPaid.forEach(item => {
-        const tgl = getValueByKeys(item, KEYS_TGL_BAYAR);
-        const d = tgl ? parseToDateObj(tgl) : null;
-        if (!inMonth(d)) return;
+        const t = getTanggalPeriodeCashflow(item);
+        if (!t || !inMonth(t.efektif)) return;
         const nominal = typeof getNominalMasterPelanggan === "function" ? getNominalMasterPelanggan(item) : 0;
         const metode = getValueByKeys(item, ["metode", "Metode Bayar", "Metode", "METODE"]) || "";
         const isCash = isMetodeCash(metode);
         if (isCash) cash += nominal; else transfer += nominal;
-        paid.push({ item, d, tgl, nominal, metode, isCash });
+        // d = tanggal untuk pengelompokan/urutan (efektif); tgl = tanggal bayar asli untuk ditampilkan
+        paid.push({ item, d: t.efektif, tgl: t.tglRaw, tglBayar: t.paid, due: t.due, dipindah: t.dipindah, nominal, metode, isCash });
     });
 
     const keluar = allOut.filter(e => inMonth(e.d));
@@ -1090,7 +1149,7 @@ function renderCashflowDashboard() {
 
     const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
     setText('cf-stat-pemasukan', formatIDR(data.totalMasuk));
-    setText('cf-stat-pemasukan-desc', data.paid.length.toLocaleString('id-ID') + ' pembayaran');
+    setText('cf-stat-pemasukan-desc', data.paid.length.toLocaleString('id-ID') + ' pembayaran' + (globalMasterSumber ? ' · ' + globalMasterSumber : ''));
     setText('cf-stat-pengeluaran', formatIDR(data.totalKeluar));
     setText('cf-stat-pengeluaran-desc', (!globalOutAll || globalOutAll.length === 0)
         ? 'Data Pengeluaran ALL belum termuat'
@@ -1129,7 +1188,7 @@ function renderCashflowDashboard() {
             <tr>
                 <td>${formatTanggalClean(row.tgl || "-")}</td>
                 <td><span class="badge-tag ${row.p.isCash ? 'tag-in' : 'tag-transfer'}">${escHtml(row.p.isCash ? 'Cash' : (metode !== '-' ? metode : 'Transfer'))}</span></td>
-                <td title="${escHtml(nama)}"><strong>${escHtml(nama)}</strong></td>
+                <td title="${escHtml(nama)}"><strong>${escHtml(nama)}</strong>${row.p.dipindah && row.p.due ? `<small style="display:block;font-weight:400;font-size:11px;color:var(--text-muted);">Masuk ${NAMA_BULAN_PANJANG[row.p.due.getMonth()]} (tempo ${String(row.p.due.getDate()).padStart(2, '0')}/${String(row.p.due.getMonth() + 1).padStart(2, '0')})</small>` : ''}</td>
                 <td title="${escHtml(area)}">${escHtml(area)}</td>
                 <td class="text-right amount-in"><strong>+${formatIDR(row.nominal)}</strong></td>
             </tr>`;
@@ -2430,9 +2489,8 @@ function sesuaikanBulanCashflow(paid, keluar) {
     cashflowBulanSudahDisesuaikan = true;
     const ym = d => d.getFullYear() * 100 + (d.getMonth() + 1);
     const semua = (paid || []).map(item => {
-        const tgl = getValueByKeys(item, KEYS_TGL_BAYAR);
-        const d = tgl ? parseToDateObj(tgl) : null;
-        return d && !isNaN(d.getTime()) ? ym(d) : null;
+        const t = getTanggalPeriodeCashflow(item);
+        return t ? ym(t.efektif) : null;
     }).concat((keluar || []).map(e => ym(e.d))).filter(v => v !== null);
     if (semua.length === 0) return;
     const [y, m] = (monthInput.value || "").split('-').map(Number);
@@ -3726,7 +3784,15 @@ function parseToDateObjPengeluaranALL(str) {
     if (str instanceof Date) return str;
     const cleanStr = String(str).trim();
 
-    // 1. Parse ISO (YYYY-MM-DD) / Date string
+    // 0. Pakai parser yang SAMA dengan data pembayaran (parseToDateObj) supaya "05/03/2026" selalu dibaca
+    //    5 Maret (DD/MM/YYYY). Sebelumnya new Date() membacanya sebagai 3 Mei (MM/DD) untuk tanggal 1-12,
+    //    sehingga pengeluaran masuk ke bulan yang salah di Dashboard/Laporan Cashflow.
+    if (typeof parseToDateObj === 'function') {
+        const seragam = parseToDateObj(cleanStr);
+        if (seragam) return seragam;
+    }
+
+    // 1. Fallback: ISO (YYYY-MM-DD) / Date string
     let d = new Date(cleanStr);
     if (!isNaN(d.getTime())) return d;
 
@@ -3756,47 +3822,25 @@ function parseToDateObjPengeluaranALL(str) {
 
 
 // Helper Parser Tanggal Fleksibel
+// Memakai parseToDateObj: format "A/B/YYYY" yang salah satunya > 12 otomatis dikenali (mis. "9/29/2026"
+// = 29 September), tidak lagi meluber jadi bulan ke-29 / tahun 2028. Yang ambigu (dua-duanya <= 12)
+// dibaca DD/MM/YYYY.
 function parseFlexDate(dateVal) {
     if (!dateVal) return null;
     if (dateVal instanceof Date) return dateVal;
-    
-    const str = String(dateVal).trim();
-    const matchDMY = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
-    if (matchDMY) {
-        return new Date(parseInt(matchDMY[3]), parseInt(matchDMY[2]) - 1, parseInt(matchDMY[1]));
-    }
-    
-    const d = new Date(str);
-    return isNaN(d.getTime()) ? null : d;
+    return parseToDateObj(String(dateVal).trim());
 }
-// Perbaikan tanggal bayar yang ambigu (misal "9/12/2026" bisa berarti 9 Desember
-// ATAU 12 September). Kalau hasil baca awal (asumsi DD/MM/YYYY) bulannya tidak
-// cocok dengan bulan jatuh tempo (expectedMonth/expectedYear), coba tukar posisi
-// tanggal & bulan; kalau versi tukar itu cocok, dipakai versi yang ditukar.
-function parseFlexDateSmart(dateVal, expectedMonth, expectedYear) {
+
+// Perbaikan tanggal bayar yang ambigu (misal "9/12/2026" bisa berarti 9 Desember ATAU 12 September).
+// Yang ambigu dipilih tafsiran yang PALING DEKAT dengan tanggal acuan (refDate = tanggal jatuh tempo;
+// bila tidak diberikan, tanggal 15 bulan/tahun yang diharapkan). Tanggal yang tidak ambigu dibaca apa adanya.
+function parseFlexDateSmart(dateVal, expectedMonth, expectedYear, refDate) {
     if (!dateVal) return null;
     if (dateVal instanceof Date) return dateVal;
-
-    const str = String(dateVal).trim();
-    const matchDMY = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
-    if (matchDMY) {
-        const a = parseInt(matchDMY[1], 10); // asumsi tanggal
-        const b = parseInt(matchDMY[2], 10); // asumsi bulan
-        const y = parseInt(matchDMY[3], 10);
-
-        const naive = new Date(y, b - 1, a);
-        const naiveCocok = (naive.getFullYear() === expectedYear && naive.getMonth() + 1 === expectedMonth);
-
-        if (!naiveCocok && a <= 12 && b <= 31) {
-            const swapped = new Date(y, a - 1, b);
-            const swappedCocok = (swapped.getFullYear() === expectedYear && swapped.getMonth() + 1 === expectedMonth);
-            if (swappedCocok) return swapped;
-        }
-        return naive;
-    }
-
-    const d = new Date(str);
-    return isNaN(d.getTime()) ? null : d;
+    const ref = (refDate instanceof Date && !isNaN(refDate.getTime()))
+        ? refDate
+        : new Date(expectedYear, (expectedMonth || 1) - 1, 15);
+    return parseToDateObj(String(dateVal).trim(), ref);
 }
 
 // Helper Baca Properti JSON (Abaikan Kapitalisasi Key)
@@ -3944,7 +3988,7 @@ function renderLaporanPeriode() {
         const strMetode = String(metode).trim().toLowerCase();
         const isPaid = (strTgl !== "" && strTgl !== "-" && strTgl !== "undefined" && strTgl !== "null") ||
                        (strMetode !== "" && strMetode !== "-" && strMetode !== "undefined" && strMetode !== "null");
-        const paidDate = isPaid ? parseFlexDateSmart(tglBayar, dueDateOwn.getMonth() + 1, dueDateOwn.getFullYear()) : null;
+        const paidDate = isPaid ? parseFlexDateSmart(tglBayar, dueDateOwn.getMonth() + 1, dueDateOwn.getFullYear(), dueDateOwn) : null;
 
         const dueDay = dueDateOwn.getDate();
         const dueInSelectedMonth = dueDateOwn.getFullYear() === tahun && (dueDateOwn.getMonth() + 1) === bulan;
@@ -4325,9 +4369,12 @@ function debugSelisihLaporan() {
     const today = new Date();
     const bulan = parseInt(document.getElementById('filter-bulan-laporan')?.value || (today.getMonth() + 1));
     const tahun = parseInt(document.getElementById('filter-tahun-laporan')?.value || today.getFullYear());
+    const akhirBulan = new Date(tahun, bulan, 0, 23, 59, 59, 999);
 
-    let totalAntrean = 0, totalMasukLaporan = 0;
-    let noTempo = [], bedaBulan = [], gagalParseTglBayar = [];
+    // Memakai aturan yang SAMA dengan renderLaporanPeriode (jatuh tempo dari periode+tempo, tanggal bayar
+    // dibaca dengan acuan jatuh tempo), jadi hasilnya persis seperti yang dihitung laporan.
+    const grup = { cocok: [], noTempo: [], bedaBulan: [], gagalParse: [], lewatAkhir: [] };
+    let totalAntrean = 0;
 
     (globalMasterData || []).forEach(item => {
         const tglBayar = getValueByKeys(item, ["tanggalBayar", "Tanggal Bayar", "Tanggal Pembayaran", "TGL_BAYAR", "Tgl Bayar", "TGL BAYAR"]);
@@ -4338,42 +4385,43 @@ function debugSelisihLaporan() {
 
         const nominal = getNominalMasterPelanggan(item);
         const nama = getValueByKeys(item, ["nama", "Nama Pelanggan", "Nama", "NAMA"]) || "Tanpa Nama";
+        const periode = getValueByKeys(item, ["periode", "Periode", "PERIODE"]);
+        const tempo = getValueByKeys(item, ["tempo", "jatuhTempo", "Jatuh Tempo", "TEMPO"]);
         totalAntrean += nominal;
 
         const dueDateOwn = resolveDueDateForLaporan(item, tahun, bulan);
-        if (!dueDateOwn) {
-            noTempo.push({ nama, nominal, periode: getValueByKeys(item, ["periode", "Periode", "PERIODE"]), tempo: getValueByKeys(item, ["tempo", "jatuhTempo", "Jatuh Tempo", "TEMPO"]) });
+        if (!dueDateOwn) { grup.noTempo.push({ nama, nominal, periode, tempo }); return; }
+
+        if (dueDateOwn.getFullYear() !== tahun || (dueDateOwn.getMonth() + 1) !== bulan) {
+            grup.bedaBulan.push({ nama, nominal, periode, tempo, jatuhTempo: dueDateOwn.toLocaleDateString('id-ID') });
             return;
         }
 
-        const dueInSelectedMonth = dueDateOwn.getFullYear() === tahun && (dueDateOwn.getMonth() + 1) === bulan;
-        if (!dueInSelectedMonth) {
-            bedaBulan.push({ nama, nominal, tempoBulan: dueDateOwn.getMonth() + 1, tempoTahun: dueDateOwn.getFullYear(), periodeAsli: getValueByKeys(item, ["periode", "Periode", "PERIODE"]) });
+        const paidDate = parseFlexDateSmart(tglBayar, dueDateOwn.getMonth() + 1, dueDateOwn.getFullYear(), dueDateOwn);
+        if (!paidDate) { grup.gagalParse.push({ nama, nominal, tglBayarRaw: tglBayar }); return; }
+        if (paidDate > akhirBulan) {
+            grup.lewatAkhir.push({ nama, nominal, tglBayarRaw: tglBayar, terbaca: paidDate.toLocaleDateString('id-ID'), jatuhTempo: dueDateOwn.toLocaleDateString('id-ID') });
             return;
         }
-
-        const paidDate = parseFlexDate(tglBayar);
-        if (!paidDate) {
-            gagalParseTglBayar.push({ nama, nominal, tglBayarRaw: tglBayar });
-            return;
-        }
-
-        totalMasukLaporan += nominal;
+        grup.cocok.push({ nama, nominal });
     });
 
+    const sum = arr => arr.reduce((s, i) => s + i.nominal, 0);
+    const rp = n => "Rp " + n.toLocaleString('id-ID');
     console.log("=== DIAGNOSA SELISIH ANTREAN vs LAPORAN BULANAN ===");
     console.log("Bulan/Tahun laporan yang dicek:", bulan + "/" + tahun);
-    console.log("Total di Daftar Antrean (belum ACC):", "Rp " + totalAntrean.toLocaleString('id-ID'));
-    console.log("Yang cocok masuk Laporan Bulanan ini:", "Rp " + totalMasukLaporan.toLocaleString('id-ID'));
-    console.log("--- 1) Tidak ada tanggal jatuh tempo valid ---", "Rp " + noTempo.reduce((s, i) => s + i.nominal, 0).toLocaleString('id-ID'));
-    console.table(noTempo);
-    console.log("--- 2) Jatuh tempo di bulan/tahun lain ---", "Rp " + bedaBulan.reduce((s, i) => s + i.nominal, 0).toLocaleString('id-ID'));
-    console.table(bedaBulan);
-    console.log("--- 3) Tanggal bayar gagal dibaca sistem ---", "Rp " + gagalParseTglBayar.reduce((s, i) => s + i.nominal, 0).toLocaleString('id-ID'));
-    console.table(gagalParseTglBayar);
+    console.log("Total di Daftar Antrean (belum ACC):", rp(totalAntrean));
+    console.log("Masuk Laporan Bulanan ini:", rp(sum(grup.cocok)), "(" + grup.cocok.length + " pelanggan)");
+    console.log("--- 1) Tidak ada jatuh tempo valid (tempo kosong) ---", rp(sum(grup.noTempo)));
+    console.table(grup.noTempo);
+    console.log("--- 2) Jatuh tempo (periode+tempo) jatuh di bulan/tahun lain ---", rp(sum(grup.bedaBulan)));
+    console.table(grup.bedaBulan);
+    console.log("--- 3) Tanggal bayar gagal dibaca ---", rp(sum(grup.gagalParse)));
+    console.table(grup.gagalParse);
+    console.log("--- 4) Tanggal bayar terbaca SETELAH akhir bulan laporan ---", rp(sum(grup.lewatAkhir)));
+    console.table(grup.lewatAkhir);
+    return { totalAntrean, masukLaporan: sum(grup.cocok), ...grup };
 }
-
-
 
 window.navigateTo = navigateTo;
 window.debugSelisihLaporan = debugSelisihLaporan;
@@ -4419,7 +4467,7 @@ window.toggleThemeMenu = toggleThemeMenu;
 // Mengambil ulang daftar alert (read-only: action=list) tiap CK_TOAST_INTERVAL_MS
 // dan hanya tampil jika ada catatan jatuh tempo (H-3 s/d hari ini).
 // ==========================================
-const CK_TOAST_INTERVAL_MS = 10000; // jeda 10 detik: dihitung sejak popup tertutup sampai popup berikutnya muncul
+const CK_TOAST_INTERVAL_MS = 45000; // jeda 45 detik: dihitung sejak popup tertutup sampai popup berikutnya muncul
 const CK_TOAST_VISIBLE_MS = 6000;   // lama popup tampil sebelum menutup sendiri
 const CK_TOAST_HIDE_ANIM_MS = 520;  // durasi animasi keluar (liquid)
 let ckToastHideTimer = null;
@@ -4453,7 +4501,7 @@ function ckHideToast() {
     toast.classList.add('hide');
     clearTimeout(ckToastRemoveTimer);
     ckToastRemoveTimer = setTimeout(function () { root.innerHTML = ''; }, CK_TOAST_HIDE_ANIM_MS);
-    ckSchedulePoll(CK_TOAST_INTERVAL_MS); // popup berikutnya: 10 detik setelah yang ini tertutup
+    ckSchedulePoll(CK_TOAST_INTERVAL_MS); // popup berikutnya: 45 detik setelah yang ini tertutup
 }
 
 function ckShowToast(alerts) {
@@ -4551,10 +4599,33 @@ function initLoginLiquid() {
     paint();
 }
 
+// ==========================================
+// PARALAKS LATAR MINECRAFT: kursor menggeser bukit, awan, dan matahari sedikit.
+// Hanya menulis dua variabel CSS (--mc-px / --mc-py) lewat rAF; tidak aktif di tema lain.
+// ==========================================
+function initMcScene() {
+    const scene = document.querySelector('.mc-scene');
+    if (!scene) return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    let raf = 0, nx = 0, ny = 0;
+    window.addEventListener('pointermove', function (e) {
+        if (document.body.getAttribute('data-theme') !== 'minecraft') return;
+        nx = (e.clientX / window.innerWidth) * 2 - 1;
+        ny = (e.clientY / window.innerHeight) * 2 - 1;
+        if (raf) return;
+        raf = requestAnimationFrame(function () {
+            raf = 0;
+            scene.style.setProperty('--mc-px', nx.toFixed(3));
+            scene.style.setProperty('--mc-py', ny.toFixed(3));
+        });
+    }, { passive: true });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     initCritterLanes();
     initTheme();
     initLoginLiquid();
+    initMcScene();
     initCeklisToast();
     try { checkSession(); } catch (e) { showLogin(); }
     initFilterTempo();

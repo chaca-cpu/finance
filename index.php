@@ -245,6 +245,28 @@ if (isset($_GET['action']) && in_array($_GET['action'], ['toggle', 'delete', 'li
 </head>
 <body>
 
+    <!-- Latar tema Minecraft: langit, matahari, awan voxel, bukit berlapis, vignette & grain (hanya tampil di tema Minecraft) -->
+    <div class="mc-scene" aria-hidden="true">
+        <div class="mc-sky"></div>
+        <div class="mc-rays"></div>
+        <div class="mc-sun"></div>
+        <div class="mc-sun mc-sun2"></div>
+        <div class="mc-clouds">
+            <span class="mc-cloud" style="--top:7%;  --w:200px; --d:120s; --dl:-18s"></span>
+            <span class="mc-cloud" style="--top:19%; --w:150px; --d:95s;  --dl:-62s"></span>
+            <span class="mc-cloud" style="--top:12%; --w:250px; --d:140s; --dl:-96s"></span>
+            <span class="mc-cloud" style="--top:30%; --w:130px; --d:85s;  --dl:-40s"></span>
+            <span class="mc-cloud" style="--top:24%; --w:180px; --d:110s; --dl:-5s"></span>
+        </div>
+        <div class="mc-hill mc-hill-far"></div>
+        <div class="mc-fog"></div>
+        <div class="mc-hill mc-hill-mid"></div>
+        <div class="mc-hill mc-hill-near"></div>
+        <div class="mc-grade"></div>
+        <div class="mc-vignette"></div>
+        <div class="mc-grain"></div>
+    </div>
+
 
     <!-- Filter "gooey" untuk animasi liquid di halaman login -->
     <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
