@@ -1,6 +1,7 @@
 /* ==========================================================
    CASHFLOW STUDIO — Design System "Modern SaaS Dashboard"
    Soft gray canvas · white surfaces · hairline borders · violet accent
+   Tema: light · reference · dark · biru (#03195b→#cbe9fd) · hijau (#051F20→#DAF1DE)
    Font : Inter
 
    Struktur file:
@@ -262,423 +263,136 @@ body[data-theme="dark"] {
 body[data-theme="dark"] .btn-acc { background: #3f9b68; }
 
 /* ----------------------------------------------------------
-   TEMA 4 — KARTUN: gaya kartun klasik / neobrutalism.
-   Garis tepi tebal warna tinta, bayangan keras tanpa blur (offset), warna datar
-   cerah di atas latar kuning berbintik, huruf bulat (Fredoka), dan hover yang
-   "melompat" lalu menekan saat diklik.
-   Dipicu body[data-theme="cartoon"]
+   TEMA 4 — BIRU: terang, bersih; gradasi biru #03195b → #cbe9fd.
+   Latar biru es sangat muda, kartu putih, aksen biru kobalt #1951fc,
+   teks navy #03195b. Dipicu body[data-theme="biru"]
    ---------------------------------------------------------- */
-body[data-theme="cartoon"] {
-    --font: 'Fredoka', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-
-    --cartoon-bg: #ffe27a;   /* warna latar utama (diganti palet) */
-    --cartoon-hl: #ffd23f;   /* warna sorot hover/aktif (diganti palet) */
-    --cartoon-shadow: #1b1b2f; /* warna bayangan keras (diganti palet) */
-    --background: var(--cartoon-bg);
+body[data-theme="biru"] {
+    --background: #eaf4ff;
     --surface: #ffffff;
-    --surface-hover: #fff8dc;
-    --surface-muted: #fff3bf;
-    --border: #1b1b2f;          /* "tinta": dipakai untuk semua garis tepi & bayangan keras */
-    --border-hover: #1b1b2f;
-    --border-soft: rgba(27, 27, 47, 0.14);
-    --text-primary: #1b1b2f;
-    --text-secondary: #4b4b6b;
-    --text-muted: #7a7a99;
+    --surface-hover: #f3f9ff;
+    --surface-muted: #eef6ff;
+    --border: #cfe3f8;
+    --border-hover: #a9cdf3;
+    --border-soft: #e2eefb;
 
-    --primary: #2f6bff;
-    --primary-hover: #1f55e0;
-    --primary-soft: rgba(47, 107, 255, 0.14);
-    --primary-ring: rgba(47, 107, 255, 0.35);
+    --text-primary: #03195b;
+    --text-secondary: #3d5a99;
+    --text-muted: #7f97c4;
+
+    --primary: #1951fc;
+    --primary-hover: #0b2cb1;
+    --primary-soft: rgba(25, 81, 252, 0.09);
+    --primary-ring: rgba(25, 81, 252, 0.22);
     --on-primary: #ffffff;
 
-    --success: #2ecc71;
-    --success-soft: #d9f7e3;
-    --success-text: #12803e;
-    --warning: #ffb400;
-    --warning-soft: #ffefc2;
-    --warning-text: #a15c00;
-    --danger: #ff4d4d;
-    --danger-soft: #ffdede;
-    --danger-text: #c81e1e;
-    --info: #3b82f6;
-    --info-soft: #dbe8ff;
-    --info-text: #1d4ed8;
+    --success: #1fa971;
+    --success-soft: #e6f7f0;
+    --success-text: #12805a;
+    --warning: #f59e0b;
+    --warning-soft: #fff4e0;
+    --warning-text: #b45309;
+    --danger: #e5484d;
+    --danger-soft: #fdecec;
+    --danger-text: #c93036;
+    --info: #3781fc;
+    --info-soft: #e6f1ff;
+    --info-text: #0b2cb1;
 
-    --chart-1: #2f6bff;
-    --chart-1-soft: #a9c1ff;
-    --chart-2: #2ecc71;
-    --chart-2-soft: #c2f0d3;
-    --chart-3: var(--cartoon-hl);
-    --chart-spark: #2ecc71;
-    --chart-grid: rgba(27, 27, 47, 0.16);
-    --chart-empty: #ece3bd;
-    --chart-track: rgba(27, 27, 47, 0.06);
-    --chart-in: #2ecc71;
-    --chart-in-2: #2f6bff;
-    --chart-out: #ff4d4d;
-    --chart-outline: #1b1b2f;
-    --chart-outline-w: 2;
-    --tooltip-bg: #ffffff;
-    --liquid-1: #2f6bff;
-    --liquid-2: #ff6b6b;
-    --liquid-3: #3ddc97;
-    --liquid-opacity: 0.55;
+    --chart-1: #1951fc;
+    --chart-1-soft: #9dbcfd;
+    --chart-2: #7db3fd;
+    --chart-2-soft: #cbe9fd;
+    --chart-3: #cbe9fd;
+    --chart-spark: #3781fc;
+    --chart-grid: rgba(3, 25, 91, 0.07);
+    --chart-empty: #e0edfb;
+    --chart-track: #eaf3fd;
+    --chart-in: #1951fc;
+    --chart-in-2: #7db3fd;
+    --chart-out: #e5484d;
+    --liquid-1: #1951fc;
+    --liquid-2: #3781fc;
+    --liquid-3: #cbe9fd;
+    --liquid-opacity: 0.45;
 
-    --bg-subtle: #fff0b3;
-    --radius-sm: 8px;
-    --radius-md: 12px;
-    --radius-lg: 16px;
-    --shadow-sm: 3px 3px 0 var(--cartoon-shadow);
-    --shadow-md: 5px 5px 0 var(--cartoon-shadow);
-    --shadow-pop: 7px 7px 0 var(--cartoon-shadow);
-
-    background-color: var(--cartoon-bg);
-    background-image: radial-gradient(rgba(27, 27, 47, 0.11) 1.6px, transparent 1.9px);
-    background-size: 18px 18px;
+    --bg-subtle: #e3f0fd;
+    --shadow-sm: 0 1px 2px rgba(3, 25, 91, 0.05);
+    --shadow-md: 0 4px 12px rgba(3, 25, 91, 0.09);
+    --shadow-pop: 0 8px 24px rgba(3, 25, 91, 0.16);
 }
-
-/* Garis tepi tebal */
-body[data-theme="cartoon"] :is(.card-stat, .chart-card, .table-card, .kategori-card, .ck-card, .ck-alert-box, .ck-empty, .modal-box, .ck-modal, .theme-menu, .login-box) { border-width: 2.5px; border-radius: 16px; }
-body[data-theme="cartoon"] .ck-toast { border-width: 2.5px; border-left-width: 7px; box-shadow: var(--shadow-md); }
-body[data-theme="cartoon"] .sidebar { border-right-width: 2.5px; }
-body[data-theme="cartoon"] .top-header { border-bottom-width: 2.5px; }
-body[data-theme="cartoon"] :is(.form-control, .form-input, .ck-input, .ck-select, .search-box input, .header-search input, .mode-toggle, .archive-tab-btn) { border-width: 2px; }
-body[data-theme="cartoon"] .header-search input { background: #ffffff; }
-body[data-theme="cartoon"] :is(.form-control, .form-input, .ck-input, .ck-select, .search-box input, .header-search input):focus { border-color: var(--border); box-shadow: 3px 3px 0 var(--primary); }
-
-/* Judul halaman: huruf tebal dengan bayangan putih */
-body[data-theme="cartoon"] .page-header h2 { font-size: 26px; font-weight: 700; letter-spacing: 0.2px; text-shadow: 2px 2px 0 #ffffff; }
-body[data-theme="cartoon"] .page-header p { color: var(--text-primary); opacity: 0.75; }
-body[data-theme="cartoon"] .stat-value { font-weight: 700; }
-body[data-theme="cartoon"] :is(.chart-header h4, .chart-header-flex h4, .brand-title) { font-weight: 600; }
-
-/* Tombol: kotak berbingkai + bayangan keras; ditekan = bergeser ke bayangan */
-body[data-theme="cartoon"] :is(.btn-primary-add, .btn-reset-filter, .btn-page, .btn-cancel, .btn-submit, .btn-login, .btn-refresh, .ck-btn, .btn-acc) {
-    border: 2px solid var(--border);
-    font-weight: 600;
-    box-shadow: 3px 3px 0 var(--cartoon-shadow);
-}
-body[data-theme="cartoon"] :is(.btn-primary-add, .btn-reset-filter, .btn-page, .btn-cancel, .ck-btn-secondary):hover:not(:disabled) { background: var(--cartoon-hl); border-color: var(--border); }
-body[data-theme="cartoon"] :is(.btn-primary-add, .btn-reset-filter, .btn-page, .btn-cancel, .btn-submit, .btn-login, .btn-refresh, .ck-btn, .btn-acc):active:not(:disabled) { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--cartoon-shadow); }
-body[data-theme="cartoon"] .btn-acc { background: #2ecc71; color: var(--text-primary); }
-body[data-theme="cartoon"] .btn-acc .btn-acc-icon { background: rgba(255, 255, 255, 0.6); }
-body[data-theme="cartoon"] .btn-login::before { background: rgba(255, 255, 255, 0.22); }
-
-/* Segmented control & tab */
-body[data-theme="cartoon"] .mode-toggle { box-shadow: 3px 3px 0 var(--cartoon-shadow); border-radius: 12px; }
-body[data-theme="cartoon"] .mode-btn { font-weight: 600; }
-body[data-theme="cartoon"] .mode-btn:hover { background: var(--cartoon-hl); color: var(--text-primary); }
-body[data-theme="cartoon"] :is(.mode-btn.active, .archive-tab-btn.active) { background: var(--primary); color: var(--on-primary); border-color: var(--border); }
-body[data-theme="cartoon"] .archive-tab-btn:hover { background: var(--cartoon-hl); color: var(--text-primary); }
-body[data-theme="cartoon"] .page-num { background: var(--primary); color: var(--on-primary); border: 2px solid var(--border); }
-
-/* Sidebar: menu aktif = kuning berbingkai */
-body[data-theme="cartoon"] .menu-btn::before { display: none; }
-body[data-theme="cartoon"] .menu-btn { font-weight: 500; }
-body[data-theme="cartoon"] .menu-btn.active { background: var(--cartoon-hl); color: var(--text-primary); font-weight: 600; box-shadow: inset 0 0 0 2px var(--border), 3px 3px 0 var(--cartoon-shadow); }
-body[data-theme="cartoon"] .menu-btn.active .menu-icon { color: var(--text-primary); }
-body[data-theme="cartoon"] .menu-btn:hover .menu-icon { color: var(--primary); }
-body[data-theme="cartoon"] .menu-btn.active:hover .menu-icon { color: var(--text-primary); }
-body[data-theme="cartoon"] .sub-menu-container { border-left: 2px dashed var(--border-soft); }
-body[data-theme="cartoon"] .brand-dot { background: var(--primary); border: 2px solid var(--border); box-shadow: 2px 2px 0 var(--cartoon-shadow); border-radius: 10px; }
-body[data-theme="cartoon"] .profile-avatar { background: var(--cartoon-hl); color: var(--text-primary); border: 2px solid var(--border); }
-body[data-theme="cartoon"] .btn-logout:hover { background: var(--danger-soft); }
-
-/* Ikon kartu statistik, lencana, legenda */
-body[data-theme="cartoon"] .stat-icon { background: var(--cartoon-hl); border: 2px solid var(--border); color: var(--text-primary); border-radius: 8px; }
-body[data-theme="cartoon"] .badge-tag { border: 1.5px solid var(--border); font-weight: 600; border-radius: 999px; padding: 1px 10px; }
-body[data-theme="cartoon"] .tag-in, body[data-theme="cartoon"] .tag-approved { background: #b9f0cf; color: var(--text-primary); }
-body[data-theme="cartoon"] .tag-out, body[data-theme="cartoon"] .tag-rejected { background: #ffc4c4; color: var(--text-primary); }
-body[data-theme="cartoon"] .tag-pending { background: #ffe08a; color: var(--text-primary); }
-body[data-theme="cartoon"] .tag-transfer { background: #bcd3ff; color: var(--text-primary); }
-body[data-theme="cartoon"] .btn-link-bukti { border: 1.5px solid var(--border); }
-body[data-theme="cartoon"] .donut-legend-item i { border: 2px solid var(--border); width: 12px; height: 12px; }
-body[data-theme="cartoon"] .cat-bar { height: 12px; border: 2px solid var(--border); background: #fff8dc; }
-body[data-theme="cartoon"] .cat-row:hover .cat-bar { height: 14px; }
-body[data-theme="cartoon"] .cat-bar > div { opacity: 1; }
-body[data-theme="cartoon"] th { color: var(--text-primary); font-weight: 600; border-bottom: 2px solid var(--border); }
-body[data-theme="cartoon"] .kategori-card.active-in { background: #d9f7e3; }
-body[data-theme="cartoon"] .kategori-card.active-out { background: #ffdede; }
-body[data-theme="cartoon"] .ck-item { border-width: 2px; border-color: var(--border); }
-body[data-theme="cartoon"] .theme-option:hover { background: var(--cartoon-hl); }
-body[data-theme="cartoon"] .theme-option.active { background: var(--bg-subtle); }
-
-/* Login: latar kuning berbintik, kartu putih berbingkai */
-body[data-theme="cartoon"] .login-page { background-color: var(--cartoon-bg); background-image: radial-gradient(rgba(27, 27, 47, 0.11) 1.6px, transparent 1.9px); background-size: 18px 18px; }
-body[data-theme="cartoon"] .login-box { background: #ffffff; box-shadow: var(--shadow-pop); -webkit-backdrop-filter: none; backdrop-filter: none; }
-body[data-theme="cartoon"] .btn-eye:hover { background: var(--cartoon-hl); }
-
+body[data-theme="biru"] .brand-dot { background: linear-gradient(135deg, #3781fc, #0b2cb1); }
+body[data-theme="biru"] :is(.mode-btn.active, .archive-tab-btn.active, .page-num) { background: var(--primary); color: var(--on-primary); }
+body[data-theme="biru"] .menu-btn.active { background: var(--primary-soft); color: var(--primary); }
+body[data-theme="biru"] .btn-acc { background: #1fa971; }
 
 /* ----------------------------------------------------------
-   TEMA 5 — MINECRAFT: serba kotak ala blok piksel.
-   Tanpa sudut membulat, huruf piksel (Pixelify Sans), panel abu-abu "inventori"
-   dengan tepi timbul (bevel), latar papan kotak-kotak, tombol hijau rumput.
-   Dipicu body[data-theme="minecraft"]
+   TEMA 5 — HIJAU: gelap minimalis; palet #051F20 → #DAF1DE.
+   Latar hijau hutan pekat, kartu #0B2B26, aksen hijau sage #8EB69B,
+   teks hijau pucat #DAF1DE. Dipicu body[data-theme="hijau"]
    ---------------------------------------------------------- */
-body[data-theme="minecraft"] {
-    --font: 'Pixelify Sans', 'Courier New', monospace;
-    --mc-hi: #ffffff;
-    --mc-lo: #8a8a8a;
-    --mc-grass: #5d9b2f;
-    --mc-grass-dk: #3f7a1c;
-    --mc-grass-lt: #6cb338;
-    --mc-bg: #b9e38c;                     /* warna latar (diganti palet) */
-    --mc-tint: rgba(40, 100, 20, 0.14);   /* warna petak gelap pada latar */
+body[data-theme="hijau"] {
+    --background: #051f20;
+    --surface: #0b2b26;
+    --surface-hover: #163832;
+    --surface-muted: #082522;
+    --border: rgba(142, 182, 155, 0.18);
+    --border-hover: rgba(142, 182, 155, 0.34);
+    --border-soft: rgba(142, 182, 155, 0.1);
 
-    --background: var(--mc-bg);
-    --surface: #ffffff;         /* semua panel/kartu/tabel/sidebar/popup putih bersih */
-    --surface-hover: #f1f1f1;
-    --surface-muted: #f5f5f5;
-    --border: #2a2a2a;
-    --border-hover: #000000;
-    --border-soft: rgba(0, 0, 0, 0.25);
-    --text-primary: #1f1f1f;
-    --text-secondary: #333333;
-    --text-muted: #555555;
+    --text-primary: #daf1de;
+    --text-secondary: #8eb69b;
+    --text-muted: #5f8a77;
 
-    --primary: #4f8f25;
-    --primary-hover: #3f7a1c;
-    --primary-soft: rgba(79, 143, 37, 0.18);
-    --primary-ring: rgba(79, 143, 37, 0.45);
-    --on-primary: #ffffff;
+    --primary: #8eb69b;
+    --primary-hover: #daf1de;
+    --primary-soft: rgba(142, 182, 155, 0.14);
+    --primary-ring: rgba(142, 182, 155, 0.32);
+    --on-primary: #051f20;
 
-    --success: #55b430;
-    --success-soft: #cdeab8;
-    --success-text: #2d6a10;
-    --warning: #f5b301;
-    --warning-soft: #fbe7a1;
-    --warning-text: #7a5500;
-    --danger: #c0392b;
-    --danger-soft: #f2c6c0;
-    --danger-text: #8e1f14;
-    --info: #3aa7c2;
-    --info-soft: #c4ebf3;
-    --info-text: #17596b;
+    --success: #6fd49a;
+    --success-soft: rgba(111, 212, 154, 0.13);
+    --success-text: #8ee0b0;
+    --warning: #d9b45a;
+    --warning-soft: rgba(217, 180, 90, 0.13);
+    --warning-text: #e3c473;
+    --danger: #e87a7a;
+    --danger-soft: rgba(232, 122, 122, 0.13);
+    --danger-text: #f09a9a;
+    --info: #7fb7c9;
+    --info-soft: rgba(127, 183, 201, 0.13);
+    --info-text: #9ccbda;
 
-    --chart-1: #5d9b2f;
-    --chart-1-soft: #a9d57a;
-    --chart-2: #4fc3d8;
-    --chart-3: #f5b301;
-    --chart-spark: #55b430;
-    --chart-grid: rgba(0, 0, 0, 0.22);
-    --chart-empty: #d9d9d9;
-    --chart-track: rgba(0, 0, 0, 0.12);
-    --chart-in: #55b430;
-    --chart-in-2: #4fc3d8;
-    --chart-out: #c0392b;
-    --chart-outline: #1a1a1a;
-    --chart-outline-w: 2;
-    --tooltip-bg: #ffffff;
-    --liquid-1: #5d9b2f;
-    --liquid-2: #f5b301;
-    --liquid-3: #4fc3d8;
-    --liquid-opacity: 0.3;
+    --chart-1: #8eb69b;
+    --chart-1-soft: #235347;
+    --chart-2: #daf1de;
+    --chart-2-soft: #235347;
+    --chart-3: #235347;
+    --chart-spark: #8eb69b;
+    --chart-grid: rgba(218, 241, 222, 0.08);
+    --chart-empty: #163832;
+    --chart-track: #0f302b;
+    --chart-in: #8eb69b;
+    --chart-in-2: #daf1de;
+    --chart-out: #e87a7a;
+    --liquid-1: #235347;
+    --liquid-2: #8eb69b;
+    --liquid-3: #163832;
+    --liquid-opacity: 0.35;
 
-    --bg-subtle: #e8e8e8;
-    --radius-sm: 0;
-    --radius-md: 0;
-    --radius-lg: 0;
-    --shadow-sm: inset 2px 2px 0 var(--mc-hi), inset -2px -2px 0 var(--mc-lo);
-    --shadow-md: inset 3px 3px 0 var(--mc-hi), inset -3px -3px 0 var(--mc-lo), 4px 4px 0 rgba(0, 0, 0, 0.35);
-    --shadow-pop: inset 3px 3px 0 var(--mc-hi), inset -3px -3px 0 var(--mc-lo), 6px 6px 0 rgba(0, 0, 0, 0.45);
-
-    /* papan kotak-kotak 32px */
-    background-color: var(--mc-bg);
-    background-image:
-        linear-gradient(45deg, var(--mc-tint) 25%, transparent 25%, transparent 75%, var(--mc-tint) 75%),
-        linear-gradient(45deg, var(--mc-tint) 25%, transparent 25%, transparent 75%, var(--mc-tint) 75%);
-    background-size: 32px 32px;
-    background-position: 0 0, 16px 16px;
+    --bg-subtle: #163832;
+    --shadow-sm: none;
+    --shadow-md: none;
+    --shadow-pop: 0 8px 24px rgba(0, 0, 0, 0.55);
+    color-scheme: dark;
 }
-
-/* Semua serba kotak */
-body[data-theme="minecraft"] *, body[data-theme="minecraft"] *::before, body[data-theme="minecraft"] *::after { border-radius: 0 !important; }
-
-/* Panel: bingkai hitam + tepi timbul */
-body[data-theme="minecraft"] :is(.card-stat, .chart-card, .table-card, .kategori-card, .ck-card, .ck-alert-box, .ck-empty, .modal-box, .ck-modal, .theme-menu, .login-box) { border: 3px solid var(--border); }
-body[data-theme="minecraft"] .ck-toast { border-width: 3px; border-left-width: 8px; box-shadow: var(--shadow-md); }
-body[data-theme="minecraft"] .sidebar { background: #ffffff; border-right: 3px solid var(--border); }
-body[data-theme="minecraft"] .top-header { border-bottom: 4px solid var(--mc-grass-dk); }
-
-/* Kolom isian ala kotak teks Minecraft: terang dengan tepi abu-abu */
-body[data-theme="minecraft"] :is(.form-control, .form-input, .ck-input, .ck-select, .search-box input, .header-search input) {
-    background: #ffffff; color: #1f1f1f; border: 2px solid #555555; box-shadow: inset 2px 2px 0 #c4c4c4;
-}
-body[data-theme="minecraft"] :is(.form-control, .form-input, .ck-input, .ck-select, .search-box input, .header-search input)::placeholder { color: #6b6b6b; }
-body[data-theme="minecraft"] :is(.form-control, .form-input, .ck-input, .ck-select, .search-box input, .header-search input):focus { border-color: #1a1a1a; box-shadow: inset 2px 2px 0 #c4c4c4, 0 0 0 2px var(--mc-grass); }
-body[data-theme="minecraft"] .header-search { color: var(--text-secondary); }
-
-body[data-theme="minecraft"] .page-header h2 { font-size: 26px; font-weight: 700; text-shadow: 2px 2px 0 rgba(255, 255, 255, 0.4); }
-body[data-theme="minecraft"] .stat-value { font-weight: 700; }
-
-/* Tombol: batu abu berbevel; aksi utama = hijau rumput; ditekan = bevel terbalik */
-body[data-theme="minecraft"] :is(.btn-primary-add, .btn-reset-filter, .btn-page, .btn-cancel, .btn-submit, .btn-login, .btn-refresh, .ck-btn, .btn-acc) {
-    border: 3px solid var(--border);
-    font-weight: 600;
-    letter-spacing: 0.3px;
-    box-shadow: inset 3px 3px 0 rgba(255, 255, 255, 0.55), inset -3px -3px 0 rgba(0, 0, 0, 0.35);
-}
-body[data-theme="minecraft"] :is(.btn-primary-add, .btn-reset-filter, .btn-page, .btn-cancel, .ck-btn-secondary):hover:not(:disabled) { background: var(--surface-hover); border-color: var(--border); }
-body[data-theme="minecraft"] :is(.btn-submit, .btn-login, .btn-refresh) { background: var(--mc-grass); color: #ffffff; text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.4); }
-body[data-theme="minecraft"] :is(.btn-submit, .btn-login, .btn-refresh):hover:not(:disabled) { background: var(--mc-grass-lt); }
-body[data-theme="minecraft"] :is(.btn-primary-add, .btn-reset-filter, .btn-page, .btn-cancel, .btn-submit, .btn-login, .btn-refresh, .ck-btn, .btn-acc):active:not(:disabled) {
-    transform: translateY(2px);
-    box-shadow: inset 3px 3px 0 rgba(0, 0, 0, 0.35), inset -3px -3px 0 rgba(255, 255, 255, 0.35);
-}
-body[data-theme="minecraft"] .btn-acc { background: #55b430; color: #ffffff; text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.4); }
-body[data-theme="minecraft"] .btn-login::before { display: none; }
-
-/* Segmented control & tab */
-body[data-theme="minecraft"] .mode-toggle { border: 3px solid var(--border); }
-body[data-theme="minecraft"] .mode-btn:hover, body[data-theme="minecraft"] .archive-tab-btn:hover { background: var(--surface-hover); }
-body[data-theme="minecraft"] :is(.mode-btn.active, .archive-tab-btn.active) { background: var(--mc-grass); color: #ffffff; border-color: var(--border); text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.4); }
-body[data-theme="minecraft"] .archive-tab-btn { border-width: 2px; }
-body[data-theme="minecraft"] .page-num { background: var(--mc-grass); color: #ffffff; border: 2px solid var(--border); }
-
-/* Sidebar: menu aktif = blok rumput */
-body[data-theme="minecraft"] .menu-btn::before { display: none; }
-body[data-theme="minecraft"] .menu-btn:hover { background: rgba(255, 255, 255, 0.35); }
-body[data-theme="minecraft"] .menu-btn.active { background: var(--mc-grass); color: #ffffff; font-weight: 600; text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.4); box-shadow: inset 2px 2px 0 rgba(255, 255, 255, 0.45), inset -2px -2px 0 rgba(0, 0, 0, 0.35); }
-body[data-theme="minecraft"] .menu-btn.active .menu-icon { color: #ffffff; }
-body[data-theme="minecraft"] .sub-menu-container { border-left: 3px solid var(--border-soft); }
-body[data-theme="minecraft"] .brand-dot { background: linear-gradient(#5d9b2f 0 40%, #7a5536 40% 100%); border: 3px solid var(--border); box-shadow: none; }
-body[data-theme="minecraft"] .profile-avatar { background: #7a5536; color: #ffffff; border: 3px solid var(--border); text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5); }
-body[data-theme="minecraft"] .btn-logout:hover { background: var(--danger-soft); }
-
-/* Ikon statistik, lencana, legenda */
-body[data-theme="minecraft"] .stat-icon { background: #f5d04a; border: 3px solid var(--border); color: var(--text-primary); }
-body[data-theme="minecraft"] .badge-tag { border: 2px solid var(--border); font-weight: 600; padding: 1px 8px; }
-body[data-theme="minecraft"] :is(.tag-in, .tag-approved) { background: #b7e39b; color: var(--text-primary); }
-body[data-theme="minecraft"] :is(.tag-out, .tag-rejected) { background: #f2b3ab; color: var(--text-primary); }
-body[data-theme="minecraft"] .tag-pending { background: #f7dc85; color: var(--text-primary); }
-body[data-theme="minecraft"] .tag-transfer { background: #aee3ee; color: var(--text-primary); }
-body[data-theme="minecraft"] .btn-link-bukti { border: 2px solid var(--border); }
-body[data-theme="minecraft"] .donut-legend-item i { border: 2px solid var(--border); width: 12px; height: 12px; }
-body[data-theme="minecraft"] .cat-bar { height: 14px; border: 2px solid var(--border); background: #e2e2e2; }
-body[data-theme="minecraft"] .cat-bar > div { opacity: 1; background-image: repeating-linear-gradient(90deg, transparent 0 6px, rgba(0, 0, 0, 0.18) 6px 8px); }
-body[data-theme="minecraft"] th { color: var(--text-primary); font-weight: 600; border-bottom: 3px solid var(--border); }
-body[data-theme="minecraft"] .kategori-card.active-in { background: #cdeab8; }
-body[data-theme="minecraft"] .kategori-card.active-out { background: #f2c6c0; }
-body[data-theme="minecraft"] .ck-item { border-width: 2px; border-color: var(--border); }
-body[data-theme="minecraft"] .theme-option:hover { background: var(--surface-hover); }
-body[data-theme="minecraft"] .theme-option.active { background: var(--bg-subtle); }
-
-/* Login: papan kotak-kotak, kartu panel inventori (gumpalan cair disembunyikan) */
-body[data-theme="minecraft"] .login-page { background-color: var(--mc-bg); background-image: linear-gradient(45deg, var(--mc-tint) 25%, transparent 25%, transparent 75%, var(--mc-tint) 75%), linear-gradient(45deg, var(--mc-tint) 25%, transparent 25%, transparent 75%, var(--mc-tint) 75%); background-size: 32px 32px; background-position: 0 0, 16px 16px; }
-body[data-theme="minecraft"] .login-liquid { display: none; }
-body[data-theme="minecraft"] .login-box { background: var(--surface); box-shadow: var(--shadow-pop); -webkit-backdrop-filter: none; backdrop-filter: none; }
-body[data-theme="minecraft"] .btn-eye:hover { background: var(--surface-hover); }
-body[data-theme="minecraft"] .login-theme-card { border: 3px solid var(--border); box-shadow: var(--shadow-sm); }
-body[data-theme="minecraft"] .login-theme-card:hover { background: var(--surface-hover); }
-body[data-theme="minecraft"] .login-theme-card.active { background: var(--mc-grass); color: #ffffff; border-color: var(--border); text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.4); box-shadow: inset 2px 2px 0 rgba(255, 255, 255, 0.45), inset -2px -2px 0 rgba(0, 0, 0, 0.35); }
+body[data-theme="hijau"] .brand-dot { background: linear-gradient(135deg, #8eb69b, #235347); }
+body[data-theme="hijau"] :is(.mode-btn.active, .archive-tab-btn.active, .page-num) { background: var(--primary); color: var(--on-primary); }
+body[data-theme="hijau"] .menu-btn.active { background: var(--primary-soft); color: var(--text-primary); }
+body[data-theme="hijau"] .btn-acc { background: #8eb69b; color: #051f20; }
 
 
-/* Palet warna Minecraft (data-mc-palette): rumput (bawaan) · langit · pasir · sakura · kayu */
-body[data-theme="minecraft"][data-mc-palette="langit"] {
-    --mc-bg: #a7dcff; --mc-tint: rgba(25, 95, 165, 0.14); --mc-grass: #3a8fd0; --mc-grass-dk: #2470a3; --mc-grass-lt: #55a6e0;
-    --primary: #2f86c4; --primary-hover: #246ea3; --primary-soft: rgba(47, 134, 196, 0.18); --primary-ring: rgba(47, 134, 196, 0.45);
-    --chart-1: #3a8fd0; --chart-1-soft: #a9d4f0; --chart-in-2: #3a8fd0; --liquid-1: #3a8fd0;
-}
-body[data-theme="minecraft"][data-mc-palette="pasir"] {
-    --mc-bg: #f0dc9f; --mc-tint: rgba(150, 110, 30, 0.14); --mc-grass: #c2710c; --mc-grass-dk: #96560a; --mc-grass-lt: #d98a26;
-    --primary: #b8650a; --primary-hover: #96560a; --primary-soft: rgba(184, 101, 10, 0.18); --primary-ring: rgba(184, 101, 10, 0.45);
-    --chart-1: #c2710c; --chart-1-soft: #f0c88a; --chart-in-2: #c2710c; --liquid-1: #c2710c;
-}
-body[data-theme="minecraft"][data-mc-palette="sakura"] {
-    --mc-bg: #ffd3e6; --mc-tint: rgba(200, 80, 130, 0.13); --mc-grass: #d6477f; --mc-grass-dk: #b03263; --mc-grass-lt: #e5669a;
-    --primary: #c93b72; --primary-hover: #a82f5e; --primary-soft: rgba(201, 59, 114, 0.18); --primary-ring: rgba(201, 59, 114, 0.45);
-    --chart-1: #d6477f; --chart-1-soft: #f3b0cb; --chart-in-2: #d6477f; --liquid-1: #d6477f;
-}
-body[data-theme="minecraft"][data-mc-palette="kayu"] {
-    --mc-bg: #cfa874; --mc-tint: rgba(90, 55, 20, 0.14);
-}
-
-/* Swatch & kartu tema ke-5 */
-.swatch-minecraft { background: #5d9b2f; border-color: #1a1a1a !important; }
-.swatch-minecraft i:last-child { background: #7a5536; }
 .login-theme-grid .login-theme-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
-
-/* ----------------------------------------------------------
-   PALET WARNA NEOABSTRAK (tema Kartun) — dipilih di halaman login / menu tema.
-   Dipicu body[data-theme="cartoon"][data-palette="..."]. "kuning" = bawaan.
-   ---------------------------------------------------------- */
-body[data-theme="cartoon"][data-palette="pink"] {
-    --cartoon-bg: #ffb8d6; --cartoon-hl: #ff9cc7;
-    --surface-hover: #fff0f6; --surface-muted: #ffe3ef; --bg-subtle: #ffd6e7; --chart-empty: #f3d3e0;
-    --primary: #e0337f; --primary-hover: #c2246b; --primary-soft: rgba(224, 51, 127, 0.14); --primary-ring: rgba(224, 51, 127, 0.35);
-    --chart-1: #e0337f; --chart-1-soft: #f5a9c9; --chart-in-2: #e0337f;
-    --liquid-1: #e0337f; --liquid-2: #ffd23f; --liquid-3: #7c5cff;
-}
-body[data-theme="cartoon"][data-palette="mint"] {
-    --cartoon-bg: #9ee8c6; --cartoon-hl: #6fdcae;
-    --surface-hover: #effff8; --surface-muted: #dcf8ec; --bg-subtle: #c5f1df; --chart-empty: #cfe9dd;
-    --primary: #0f9d6b; --primary-hover: #0b7e55; --primary-soft: rgba(15, 157, 107, 0.14); --primary-ring: rgba(15, 157, 107, 0.35);
-    --chart-1: #0f9d6b; --chart-1-soft: #9fdcc4; --chart-in-2: #0f9d6b;
-    --liquid-1: #0f9d6b; --liquid-2: #ffd23f; --liquid-3: #2f6bff;
-}
-body[data-theme="cartoon"][data-palette="lavender"] {
-    --cartoon-bg: #cbb8ff; --cartoon-hl: #b79bff;
-    --surface-hover: #f5f0ff; --surface-muted: #e9defe; --bg-subtle: #ddd0ff; --chart-empty: #ddd5f0;
-    --primary: #6d3bff; --primary-hover: #5525e0; --primary-soft: rgba(109, 59, 255, 0.14); --primary-ring: rgba(109, 59, 255, 0.35);
-    --chart-1: #6d3bff; --chart-1-soft: #c3b0ff; --chart-in-2: #6d3bff;
-    --liquid-1: #6d3bff; --liquid-2: #ff6b6b; --liquid-3: #3ddc97;
-}
-body[data-theme="cartoon"][data-palette="oranye"] {
-    --cartoon-bg: #ffc08a; --cartoon-hl: #ffa45c;
-    --surface-hover: #fff4ea; --surface-muted: #ffe6d1; --bg-subtle: #ffd9b8; --chart-empty: #f0dcc8;
-    --primary: #f2600c; --primary-hover: #d24f04; --primary-soft: rgba(242, 96, 12, 0.14); --primary-ring: rgba(242, 96, 12, 0.35);
-    --chart-1: #f2600c; --chart-1-soft: #ffc29a; --chart-in-2: #f2600c;
-    --liquid-1: #f2600c; --liquid-2: #2f6bff; --liquid-3: #3ddc97;
-}
-
-/* Palet MALAM (kode "gelap"): slate-indigo lembut, teks putih kebiruan, aksen periwinkle + pink + mint.
-   Kontras sengaja diturunkan (tanpa kuning/krem terang) supaya nyaman di mata. */
-body[data-theme="cartoon"][data-palette="gelap"] {
-    --cartoon-bg: #232741; --cartoon-hl: #3d4470; --cartoon-shadow: #0d0f22;
-    --surface: #2d3250; --surface-hover: #363c60; --surface-muted: #363c60; --bg-subtle: #3a4068;
-    --chart-empty: #3a4068; --chart-track: rgba(255, 255, 255, 0.06);
-    --border: #8f95c4; --border-hover: #a9aedb; --border-soft: rgba(143, 149, 196, 0.25);
-    --text-primary: #e6e4f2; --text-secondary: #b4b8d6; --text-muted: #868bb0;
-    --primary: #8ea2ff; --primary-hover: #a5b4ff; --primary-soft: rgba(142, 162, 255, 0.18); --primary-ring: rgba(142, 162, 255, 0.4); --on-primary: #11142b;
-    --success: #6fe3b0; --success-soft: #25493f; --success-text: #8af0c0;
-    --warning: #ffc978; --warning-soft: #54432a; --warning-text: #ffd99a;
-    --danger: #ff8a8a;  --danger-soft: #55303a;  --danger-text: #ffadb5;
-    --info: #8ea2ff;    --info-soft: #2b3c6b;    --info-text: #aac2ff;
-    --chart-1: #8ea2ff; --chart-1-soft: #4b5697; --chart-2: #6fe3b0; --chart-3: #ffc978;
-    --chart-spark: #6fe3b0; --chart-in: #6fe3b0; --chart-in-2: #ff9ecb; --chart-out: #ff8a8a;
-    --chart-grid: rgba(230, 228, 242, 0.14); --chart-outline: #0f1128; --tooltip-bg: #2d3250;
-    --liquid-1: #8ea2ff; --liquid-2: #ff9ecb; --liquid-3: #6fe3b0; --liquid-opacity: 0.25;
-    background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1.6px, transparent 1.9px);
-}
-body[data-theme="cartoon"][data-palette="gelap"] .login-page { background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1.6px, transparent 1.9px); }
-body[data-theme="cartoon"][data-palette="gelap"] .login-box { background: var(--surface); }
-body[data-theme="cartoon"][data-palette="gelap"] .header-search input { background: var(--surface-muted); }
-body[data-theme="cartoon"][data-palette="gelap"] .page-header h2 { text-shadow: 2px 2px 0 #0d0f22; }
-body[data-theme="cartoon"][data-palette="gelap"] .btn-acc { background: #6fe3b0; color: #10142b; }
-body[data-theme="cartoon"][data-palette="gelap"] :is(.tag-in, .tag-approved) { background: #25493f; color: #b5f5d6; }
-body[data-theme="cartoon"][data-palette="gelap"] :is(.tag-out, .tag-rejected) { background: #55303a; color: #ffc9ce; }
-body[data-theme="cartoon"][data-palette="gelap"] .tag-pending { background: #54432a; color: #ffe2ad; }
-body[data-theme="cartoon"][data-palette="gelap"] .tag-transfer { background: #2b3c6b; color: #c6d6ff; }
-body[data-theme="cartoon"][data-palette="gelap"] .cat-bar { background: #3a4068; }
-body[data-theme="cartoon"][data-palette="gelap"] .kategori-card.active-in { background: #25493f; }
-body[data-theme="cartoon"][data-palette="gelap"] .kategori-card.active-out { background: #55303a; }
-
-/* Pemilih palet (login & menu tema) */
-.palette-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.palette-option {
-    --sw-bg: #ffe27a; --sw-pr: #2f6bff;
-    width: 28px; height: 28px; padding: 0; flex-shrink: 0; cursor: pointer;
-    border-radius: 50%; border: 2px solid var(--text-primary);
-    background: linear-gradient(135deg, var(--sw-bg) 50%, var(--sw-pr) 50%);
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-.palette-option:hover { transform: scale(1.1); }
-.palette-option.active { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--text-primary); }
-.palette-option:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
-.palette-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; display: block; }
-.palette-label b { color: var(--text-primary); font-weight: 600; }
-.theme-menu-palette { padding: 8px; margin-top: 4px; border-top: 1px solid var(--border-soft, var(--border)); }
-.theme-menu-palette[hidden] { display: none; }
 
 /* Pilihan tema di halaman login */
 .login-theme { margin-bottom: var(--space-4); transition: box-shadow 0.2s ease; border-radius: var(--radius-md); }
@@ -694,46 +408,7 @@ body[data-theme="cartoon"][data-palette="gelap"] .kategori-card.active-out { bac
 .login-theme-card:hover { background: var(--bg-subtle); }
 .login-theme-card.active { border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary-ring); font-weight: 600; }
 .login-theme-card:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
-.login-theme-palette { margin-top: 10px; }
-.login-theme-palette[hidden] { display: none; }
 .login-theme.needs-pick { box-shadow: 0 0 0 2px var(--danger); padding: 6px; margin: -6px -6px calc(var(--space-4) - 6px); }
-body[data-theme="cartoon"] .login-theme-card { border-width: 2px; }
-body[data-theme="cartoon"] .login-theme-card:hover { background: var(--cartoon-hl); }
-body[data-theme="cartoon"] .login-theme-card.active { background: var(--cartoon-hl); border-color: var(--border); box-shadow: 3px 3px 0 var(--cartoon-shadow); }
-
-/* ----------------------------------------------------------
-   TEMPELAN KARAKTER (stiker dekoratif) — tema Neoabstrak (kartun) & Minecraft (piksel).
-   Sprite didefinisikan sekali di index.php (<symbol>), dipakai lewat <use>.
-   Tempat: halaman login (kiri/kanan kartu + bertengger di tepi kartu) & dasar sidebar.
-   ---------------------------------------------------------- */
-.stk { display: none; height: 48px; width: auto; flex-shrink: 0; pointer-events: none; user-select: none; }
-body[data-theme="cartoon"] .stk-neo, body[data-theme="minecraft"] .stk-mc { display: block; }
-body[data-theme="cartoon"] .stk { filter: drop-shadow(3px 3px 0 var(--cartoon-shadow)); transform-origin: 50% 100%; }
-body[data-theme="minecraft"] .stk { filter: drop-shadow(3px 3px 0 rgba(0, 0, 0, 0.35)); image-rendering: pixelated; transform-origin: 50% 100%; }
-
-.sidebar-stickers { display: none; align-items: flex-end; justify-content: center; gap: 12px; padding: 2px 0 12px; }
-body[data-theme="cartoon"] .sidebar-stickers, body[data-theme="minecraft"] .sidebar-stickers { display: flex; }
-.sidebar-stickers .stk { height: 44px; }
-
-.login-deco { display: none; position: absolute; bottom: 7vh; z-index: 0; pointer-events: none; }
-body[data-theme="cartoon"] .login-deco, body[data-theme="minecraft"] .login-deco { display: block; }
-.login-deco-left  { right: calc(50% + 235px); }
-.login-deco-right { left: calc(50% + 235px); }
-.login-deco .stk { height: 124px; }
-body[data-theme="minecraft"] .login-deco .stk { height: 150px; }
-.login-deco-perch { display: none; position: absolute; bottom: calc(100% - 3px); right: 26px; pointer-events: none; }
-body[data-theme="cartoon"] .login-deco-perch, body[data-theme="minecraft"] .login-deco-perch { display: flex; }
-.login-deco-perch .stk { height: 62px; }
-@media (max-width: 860px) { .login-deco { display: none !important; } }
-
-@media (prefers-reduced-motion: no-preference) {
-    body[data-theme="cartoon"] .stk { animation: stk-wobble 3.2s ease-in-out infinite; }
-    body[data-theme="minecraft"] .stk { animation: stk-bob 1.6s steps(1, end) infinite; }
-    .sidebar-stickers .stk:nth-child(2), .login-deco-right .stk { animation-delay: -0.8s; }
-    .sidebar-stickers .stk:nth-child(3), .login-deco-perch .stk { animation-delay: -1.5s; }
-}
-@keyframes stk-wobble { 0%, 100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg); } }
-@keyframes stk-bob { 0% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
 
 /* Menu pilihan tema */
 .theme-switcher { position: relative; }
@@ -776,8 +451,10 @@ body[data-theme="cartoon"] .login-deco-perch, body[data-theme="minecraft"] .logi
 .swatch-reference i:last-child { background: #1c2536; }
 .swatch-dark { background: #0d0d0e; }
 .swatch-dark i:last-child { background: #f2f2f3; }
-.swatch-cartoon { background: #ffe27a; border-color: #1b1b2f !important; }
-.swatch-cartoon i:last-child { background: #2f6bff; }
+.swatch-biru { background: #cbe9fd; }
+.swatch-biru i:last-child { background: #1951fc; }
+.swatch-hijau { background: #051f20; }
+.swatch-hijau i:last-child { background: #8eb69b; }
 
 /* ==========================================================
    2. BASE
@@ -1980,343 +1657,3 @@ td.td-category { font-weight: 500; }
 .btn-eye.is-visible .eye-off { display: block; }
 .btn-eye.is-visible { color: var(--primary); }
 .btn-login:disabled { opacity: 0.7; cursor: progress; }
-
-
-/* ==========================================================
-   11. KARAKTER MINECRAFT (hanya tema Minecraft; tema Neo polos tanpa stiker)
-   a) Bunga goyang di kartu statistik & kartu kategori
-   b) Golem/zombi jalan atau nongol DI DALAM tabel tertentu (dashboard & Transaksi)
-   c) Creeper meledak di popup pengingat ceklis
-   Sprite <symbol> ada di index.php; lajur tabel dibuat JS (initCritterLanes).
-   ========================================================== */
-body[data-theme="cartoon"] :is(.login-deco, .login-deco-perch, .sidebar-stickers) { display: none; }
-
-body[data-theme="minecraft"] {
-    --flower-r: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 10' shape-rendering='crispEdges'%3E%3Crect x='3' y='4' width='2' height='6' fill='%233f7a1c'/%3E%3Crect x='1' y='7' width='2' height='1' fill='%235d9b2f'/%3E%3Crect x='5' y='6' width='2' height='1' fill='%235d9b2f'/%3E%3Crect x='2' width='4' height='4' fill='%23d63a2a'/%3E%3Crect x='1' y='1' width='6' height='2' fill='%23d63a2a'/%3E%3Crect x='3' y='1' width='2' height='2' fill='%23f7d51d'/%3E%3C/svg%3E");
-    --flower-y: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 10' shape-rendering='crispEdges'%3E%3Crect x='3' y='4' width='2' height='6' fill='%233f7a1c'/%3E%3Crect x='1' y='7' width='2' height='1' fill='%235d9b2f'/%3E%3Crect x='5' y='6' width='2' height='1' fill='%235d9b2f'/%3E%3Crect x='2' width='4' height='4' fill='%23f7d51d'/%3E%3Crect x='1' y='1' width='6' height='2' fill='%23f7d51d'/%3E%3Crect x='3' y='1' width='2' height='2' fill='%23e08a10'/%3E%3C/svg%3E");
-}
-body[data-theme="minecraft"] .kategori-card { position: relative; }
-body[data-theme="minecraft"] :is(.card-stat:not(.has-spark), .kategori-card)::after {
-    content: ""; position: absolute; right: 10px; bottom: 9px; width: 24px; height: 30px;
-    background: var(--flower-r) center bottom / contain no-repeat; image-rendering: pixelated;
-    transform-origin: 50% 100%; pointer-events: none; animation: flower-sway 2.4s linear infinite;
-}
-body[data-theme="minecraft"] :is(.card-stat:not(.has-spark), .kategori-card):nth-child(5n+2)::after { background-image: var(--item-diamond); animation: item-bob 1.6s linear infinite; }
-body[data-theme="minecraft"] :is(.card-stat:not(.has-spark), .kategori-card):nth-child(5n+3)::after { background-image: var(--item-sword); animation: item-bob 1.6s linear -0.5s infinite; }
-body[data-theme="minecraft"] :is(.card-stat:not(.has-spark), .kategori-card):nth-child(5n+4)::after { background-image: var(--item-emerald); animation: item-bob 1.6s linear -1s infinite; }
-body[data-theme="minecraft"] :is(.card-stat:not(.has-spark), .kategori-card):nth-child(5n+5)::after { background-image: var(--flower-y); animation-delay: -1.2s; }
-@keyframes item-bob { 0%, 49% { transform: translateY(0); } 50%, 100% { transform: translateY(-3px); } }
-@keyframes flower-sway { 0%, 49% { transform: rotate(-6deg); } 50%, 100% { transform: rotate(6deg); } }
-
-/* Lajur di dalam tabel */
-.critter-lane { display: none; position: relative; height: 56px; overflow: hidden; pointer-events: none; user-select: none; }
-body[data-theme="minecraft"] .critter-lane { display: block; border-top: 3px solid var(--border-soft); background: var(--surface); }
-.critter-lane .stk { height: 34px; }
-.crit { position: absolute; bottom: 3px; left: var(--x, 10%); display: block; line-height: 0; }
-.crit.walk { animation: crit-walk var(--dur, 26s) steps(160) var(--delay, 0s) infinite; }
-.crit.peek { animation: crit-peek 6s steps(8) var(--delay, 0s) infinite; }
-@keyframes crit-walk { from { left: -60px; } to { left: 100%; } }
-@keyframes crit-peek { 0%, 25% { transform: translateY(105%); } 40%, 70% { transform: translateY(0); } 85%, 100% { transform: translateY(105%); } }
-
-/* Rumput di dasar SETIAP kartu & tabel (warna ikut palet Minecraft lewat --mc-grass) */
-body[data-theme="minecraft"] {
-    --grass-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 5' shape-rendering='crispEdges'%3E%3Crect y='3' width='12' height='2'/%3E%3Crect x='1' y='1' width='1' height='2'/%3E%3Crect x='2' y='2' width='1' height='1'/%3E%3Crect x='5' width='1' height='3'/%3E%3Crect x='6' y='1' width='1' height='2'/%3E%3Crect x='9' y='1' width='1' height='2'/%3E%3Crect x='10' y='2' width='1' height='1'/%3E%3C/svg%3E");
-}
-body[data-theme="minecraft"] :is(.chart-card, .table-card, .ck-card) { position: relative; }
-body[data-theme="minecraft"] :is(.card-stat, .chart-card, .table-card, .kategori-card, .ck-card)::before {
-    content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 10px; z-index: 2; pointer-events: none;
-    background: linear-gradient(to top, var(--mc-grass-dk) 2px, var(--mc-grass) 2px);
-    -webkit-mask: var(--grass-mask) left bottom / 24px 10px repeat-x; mask: var(--grass-mask) left bottom / 24px 10px repeat-x;
-    image-rendering: pixelated;
-}
-
-/* Popup pengingat ceklis: creeper datang, berkedip & membesar, lalu MELEDAK (siklus 7 dtk, berulang) */
-.ck-toast-boom { display: none; }
-body[data-theme="minecraft"] .ck-toast { padding-bottom: 64px; }
-body[data-theme="minecraft"] .ck-toast > .ck-toast-boom, body[data-theme="minecraft"] .ck-toast.show > .ck-toast-boom {
-    display: block; position: absolute; inset: 0; z-index: 3; overflow: visible; pointer-events: none; animation: none;
-}
-.boom-creeper { position: absolute; right: 60px; bottom: 8px; line-height: 0; animation: boom-creeper 7s steps(28) infinite; transform-origin: 50% 100%; }
-.boom-creeper svg { height: 52px; width: auto; display: block; image-rendering: pixelated; filter: saturate(1.5) contrast(1.15) drop-shadow(3px 3px 0 rgba(0, 0, 0, 0.6)); }
-.boom-flash { position: absolute; inset: 0; opacity: 0; animation: boom-flash 7s linear infinite;
-    background: radial-gradient(circle at calc(100% - 79px) calc(100% - 34px), #ffffff 0, #ffe14a 12%, #ff7a00 32%, rgba(255, 50, 0, 0.55) 55%, rgba(255, 50, 0, 0) 80%); }
-.boom-p { position: absolute; right: 74px; bottom: 28px; width: 10px; height: 10px; border: 2px solid #1a1a1a; opacity: 0; animation: boom-pop 7s steps(12) infinite; }
-.boom-s { position: absolute; right: 70px; bottom: 30px; width: 16px; height: 16px; background: #4a4a4a; border: 2px solid #1a1a1a; opacity: 0; animation: boom-smoke 7s steps(12) infinite; }
-.boom-text { position: absolute; right: 22px; bottom: 44px; font-family: var(--font); font-size: 28px; font-weight: 700; line-height: 1; color: #ffe14a; letter-spacing: 1px;
-    -webkit-text-stroke: 4px #1a1a1a; paint-order: stroke fill; text-shadow: 3px 3px 0 #c81e00; opacity: 0; transform-origin: 50% 100%; animation: boom-text 7s steps(12) infinite; }
-@keyframes boom-creeper {
-    0% { transform: translateX(240px); opacity: 1; filter: none; }
-    22% { transform: translateX(0); }
-    26% { filter: brightness(3); } 30% { filter: none; transform: scale(1.15); }
-    34% { filter: brightness(3); } 38% { filter: none; transform: scale(1.35); }
-    41% { filter: brightness(3); transform: scale(1.65); opacity: 1; }
-    42%, 100% { opacity: 0; transform: scale(1.9); }
-}
-@keyframes boom-flash { 0%, 41% { opacity: 0; } 42% { opacity: 1; } 47% { opacity: 0.9; } 56%, 100% { opacity: 0; } }
-@keyframes boom-pop { 0%, 41% { opacity: 0; transform: none; } 42% { opacity: 1; transform: none; } 60% { opacity: 1; } 66%, 100% { opacity: 0; transform: translate(var(--dx), var(--dy)); } }
-@keyframes boom-smoke { 0%, 43% { opacity: 0; transform: none; } 45% { opacity: 0.95; } 72%, 100% { opacity: 0; transform: translate(var(--dx), -46px) scale(2); } }
-@keyframes boom-text { 0%, 41% { opacity: 0; transform: scale(0.3) rotate(-8deg); } 44% { opacity: 1; transform: scale(1.3) rotate(-8deg); } 58% { opacity: 1; transform: scale(1) rotate(-8deg); } 64%, 100% { opacity: 0; transform: scale(1) rotate(-8deg); } }
-
-/* Card: item Minecraft selang-seling (bunga, diamond, pedang, emerald, bunga kuning) */
-body[data-theme="minecraft"] {
-    --item-diamond: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 7' shape-rendering='crispEdges'%3E%3Crect x='3' y='0' width='6' height='1' fill='%23aef7f1'/%3E%3Crect x='2' y='1' width='8' height='1' fill='%234fdcd0'/%3E%3Crect x='1' y='2' width='10' height='1' fill='%234fdcd0'/%3E%3Crect x='2' y='3' width='8' height='1' fill='%232fb8b0'/%3E%3Crect x='3' y='4' width='6' height='1' fill='%232fb8b0'/%3E%3Crect x='4' y='5' width='4' height='1' fill='%231f8f8a'/%3E%3Crect x='5' y='6' width='2' height='1' fill='%231f8f8a'/%3E%3Crect x='3' y='1' width='2' height='1' fill='%23ffffff'/%3E%3C/svg%3E");
-    --item-emerald: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 7' shape-rendering='crispEdges'%3E%3Crect x='3' y='0' width='6' height='1' fill='%23b6f7c0'/%3E%3Crect x='2' y='1' width='8' height='1' fill='%234fdc6a'/%3E%3Crect x='1' y='2' width='10' height='1' fill='%234fdc6a'/%3E%3Crect x='2' y='3' width='8' height='1' fill='%232fb84a'/%3E%3Crect x='3' y='4' width='6' height='1' fill='%232fb84a'/%3E%3Crect x='4' y='5' width='4' height='1' fill='%231f8f38'/%3E%3Crect x='5' y='6' width='2' height='1' fill='%231f8f38'/%3E%3Crect x='3' y='1' width='2' height='1' fill='%23ffffff'/%3E%3C/svg%3E");
-    --item-sword: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' shape-rendering='crispEdges'%3E%3Crect x='10' y='0' width='1' height='1' fill='%234fe0d6'/%3E%3Crect x='9' y='1' width='1' height='1' fill='%234fe0d6'/%3E%3Crect x='8' y='2' width='1' height='1' fill='%234fe0d6'/%3E%3Crect x='7' y='3' width='1' height='1' fill='%234fe0d6'/%3E%3Crect x='6' y='4' width='1' height='1' fill='%234fe0d6'/%3E%3Crect x='5' y='5' width='1' height='1' fill='%234fe0d6'/%3E%3Crect x='9' y='0' width='1' height='1' fill='%232fb8b0'/%3E%3Crect x='8' y='1' width='1' height='1' fill='%232fb8b0'/%3E%3Crect x='7' y='2' width='1' height='1' fill='%232fb8b0'/%3E%3Crect x='6' y='3' width='1' height='1' fill='%232fb8b0'/%3E%3Crect x='5' y='4' width='1' height='1' fill='%232fb8b0'/%3E%3Crect x='10' y='1' width='1' height='1' fill='%23aef7f1'/%3E%3Crect x='9' y='2' width='1' height='1' fill='%23aef7f1'/%3E%3Crect x='8' y='3' width='1' height='1' fill='%23aef7f1'/%3E%3Crect x='7' y='4' width='1' height='1' fill='%23aef7f1'/%3E%3Crect x='6' y='5' width='1' height='1' fill='%23aef7f1'/%3E%3Crect x='3' y='5' width='1' height='1' fill='%236b4a2b'/%3E%3Crect x='4' y='6' width='1' height='1' fill='%236b4a2b'/%3E%3Crect x='5' y='7' width='1' height='1' fill='%236b4a2b'/%3E%3Crect x='3' y='7' width='1' height='1' fill='%237a5536'/%3E%3Crect x='2' y='8' width='1' height='1' fill='%237a5536'/%3E%3Crect x='1' y='9' width='1' height='1' fill='%234a3320'/%3E%3C/svg%3E");
-}
-
-/* Lanskap di tabel & diagram besar: pohon, rumah villager, burung terbang */
-.crit-tree .stk { height: 38px; }
-.crit-tree.sm .stk { height: 28px; }
-.crit-house .stk { height: 40px; }
-body[data-theme="minecraft"] :is(.crit-tree, .crit-house, .crit-pillar) .stk { animation: none; }
-.crit.fly { bottom: auto; top: var(--y, 6px); animation: crit-walk var(--dur, 26s) steps(160) var(--delay, 0s) infinite; }
-body[data-theme="minecraft"] .crit.fly .stk { height: 12px; animation: crit-flap 0.6s steps(1, end) infinite; }
-@keyframes crit-flap { 0% { transform: scaleY(1); } 50% { transform: scaleY(-1); } }
-
-/* Biome laut di tabel besar paling bawah (halaman Transaksi): lumba-lumba & ikan melompat */
-body[data-theme="minecraft"] .critter-lane.ocean { height: 74px; border-top: 0; background: linear-gradient(to bottom, transparent 0 36px, #7fd4f0 36px, #3f9fd8 58%, #2a78b8 100%); }
-.critter-lane.ocean::before { content: ""; position: absolute; left: 0; right: 0; top: 36px; height: 6px; z-index: 1; opacity: 0.85; background: repeating-linear-gradient(90deg, #ffffff 0 8px, transparent 8px 16px); animation: crit-wave 2.4s steps(8) infinite; }
-@keyframes crit-wave { to { background-position: 16px 0; } }
-body[data-theme="minecraft"] :is(.table-card, .chart-card).has-ocean::before { background: linear-gradient(to top, #b8974a 2px, #e3cc85 2px); }
-.crit.jump { animation: crit-walk var(--dur, 18s) steps(160) var(--delay, 0s) infinite; }
-body[data-theme="minecraft"] .crit.jump .stk { animation: crit-arc var(--arc, 6s) steps(30) infinite; }
-.crit-dolphin .stk { height: 24px; }
-.crit-fish .stk { height: 14px; }
-@keyframes crit-arc {
-    0%, 12% { transform: translateY(120%) rotate(-50deg); }
-    30% { transform: translateY(calc(var(--pk, -40px) * 0.6)) rotate(-25deg); }
-    50% { transform: translateY(var(--pk, -40px)) rotate(0deg); }
-    70% { transform: translateY(calc(var(--pk, -40px) * 0.6)) rotate(25deg); }
-    88%, 100% { transform: translateY(120%) rotate(55deg); }
-}
-
-/* Lajur di card berpadding (diagram) dibuat selebar card; jangan menyusut di layout flex */
-.critter-lane { flex-shrink: 0; }
-.chart-card > .critter-lane { margin: 12px -16px -16px; }
-
-/* Biome The End (naga) — tabel "Transaksi Terbaru" di dashboard */
-body[data-theme="minecraft"] .critter-lane.end { height: 74px; } /* latar putih mengikuti card */
-body[data-theme="minecraft"] :is(.table-card, .chart-card).has-end::before { background: linear-gradient(to top, #b9b97a 2px, #e6e6a8 2px); }
-.crit.soar { bottom: auto; top: var(--y, 8px); animation: crit-walk var(--dur, 30s) steps(160) var(--delay, 0s) infinite; }
-.crit-dragon { display: grid; }
-.crit-dragon .stk { grid-area: 1 / 1; height: 38px; }
-body[data-theme="minecraft"] .crit-dragon .stk { animation: dragon-a 0.8s steps(1, end) infinite; }
-body[data-theme="minecraft"] .crit-dragon .stk:nth-child(2) { animation-name: dragon-b; }
-@keyframes dragon-a { 0% { opacity: 1; } 50% { opacity: 0; } }
-@keyframes dragon-b { 0% { opacity: 0; } 50% { opacity: 1; } }
-.crit-enderman .stk { height: 48px; }
-.crit-pillar .stk { height: 46px; }
-
-/* Naga mondar-mandir + menyemburkan api; enderman ngeblink (teleport) */
-.crit.pace { bottom: auto; top: 8px; left: 4%; animation: dragon-pace var(--dur, 22s) steps(220) var(--delay, 0s) infinite; }
-.crit.pace .dragon-body { position: relative; animation: dragon-flip var(--dur, 22s) steps(1, end) var(--delay, 0s) infinite; }
-.dragon-fire { position: absolute; left: 96%; top: 3px; height: 20px; width: auto; opacity: 0; transform-origin: 0 50%; image-rendering: pixelated; animation: dragon-fire var(--dur, 22s) steps(1, end) var(--delay, 0s) infinite; }
-@keyframes dragon-pace { 0% { left: 4%; } 48%, 50% { left: 70%; } 98%, 100% { left: 4%; } }
-@keyframes dragon-flip { 0%, 49% { transform: scaleX(1); } 50%, 99% { transform: scaleX(-1); } 100% { transform: scaleX(1); } }
-@keyframes dragon-fire {
-    0%, 19%, 32%, 69%, 82%, 100% { opacity: 0; transform: scaleX(0.2); }
-    20%, 70% { opacity: 1; transform: scaleX(0.6) scaleY(0.9); }
-    22%, 26%, 30%, 72%, 76%, 80% { opacity: 1; transform: scaleX(1) scaleY(1.15); }
-    24%, 28%, 74%, 78% { opacity: 1; transform: scaleX(0.85) scaleY(1); }
-}
-.crit.tp { animation: crit-tp var(--dur, 10s) steps(1, end) var(--delay, 0s) infinite; }
-body[data-theme="minecraft"] .crit-enderman .stk { filter: drop-shadow(0 0 3px #b455ff); }
-@keyframes crit-tp {
-    0% { left: var(--x1); opacity: 1; } 20% { left: var(--x1); opacity: 0; } 22% { left: var(--x1); opacity: 1; } 24% { left: var(--x1); opacity: 0; }
-    26% { left: var(--x2); opacity: 1; } 46% { left: var(--x2); opacity: 0; } 48% { left: var(--x2); opacity: 1; } 50% { left: var(--x2); opacity: 0; }
-    52% { left: var(--x3); opacity: 1; } 72% { left: var(--x3); opacity: 0; } 74% { left: var(--x3); opacity: 1; } 76% { left: var(--x3); opacity: 0; }
-    78%, 100% { left: var(--x1); opacity: 1; }
-}
-
-
-/* ==========================================================
-   12. LATAR & HEADER TEMA MINECRAFT (hanya tampilan; tidak mengubah struktur HTML/JS)
-   a) Latar lebih halus: bintik piksel + kotak besar samar  b) Awan parallax + bukit di balik panel
-   c) Judul halaman bergaya papan tanda kayu. Panel konten tetap putih -> keterbacaan terjaga.
-   ========================================================== */
-body[data-theme="minecraft"] {
-    --mc-tint-soft: color-mix(in srgb, var(--mc-tint) 45%, transparent);
-    --mc-speckle: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect x='2' y='3' width='1' height='1' fill='rgba(0,0,0,0.05)'/%3E%3Crect x='9' y='1' width='1' height='1' fill='rgba(255,255,255,0.10)'/%3E%3Crect x='13' y='6' width='1' height='1' fill='rgba(0,0,0,0.05)'/%3E%3Crect x='5' y='10' width='1' height='1' fill='rgba(255,255,255,0.10)'/%3E%3Crect x='11' y='13' width='1' height='1' fill='rgba(0,0,0,0.05)'/%3E%3Crect x='1' y='14' width='1' height='1' fill='rgba(255,255,255,0.10)'/%3E%3Crect x='7' y='7' width='1' height='1' fill='rgba(0,0,0,0.05)'/%3E%3Crect x='14' y='11' width='1' height='1' fill='rgba(255,255,255,0.10)'/%3E%3Crect x='4' y='5' width='1' height='1' fill='rgba(255,255,255,0.10)'/%3E%3Crect x='10' y='9' width='1' height='1' fill='rgba(0,0,0,0.05)'/%3E%3C/svg%3E");
-    --mc-cloud: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 30' shape-rendering='crispEdges'%3E%3Crect x='4' y='6' width='20' height='3' fill='%23ffffff'/%3E%3Crect x='2' y='7' width='24' height='2' fill='%23ffffff'/%3E%3Crect x='7' y='4' width='6' height='3' fill='%23ffffff'/%3E%3Crect x='13' y='3' width='6' height='4' fill='%23ffffff'/%3E%3Crect x='18' y='5' width='5' height='2' fill='%23ffffff'/%3E%3Crect x='4' y='9' width='20' height='1' fill='%23dbe7ee'/%3E%3Crect x='50' y='16' width='20' height='3' fill='%23ffffff'/%3E%3Crect x='48' y='17' width='24' height='2' fill='%23ffffff'/%3E%3Crect x='53' y='14' width='6' height='3' fill='%23ffffff'/%3E%3Crect x='59' y='13' width='6' height='4' fill='%23ffffff'/%3E%3Crect x='64' y='15' width='5' height='2' fill='%23ffffff'/%3E%3Crect x='50' y='19' width='20' height='1' fill='%23dbe7ee'/%3E%3Crect x='88' y='7' width='20' height='3' fill='%23ffffff'/%3E%3Crect x='86' y='8' width='24' height='2' fill='%23ffffff'/%3E%3Crect x='91' y='5' width='6' height='3' fill='%23ffffff'/%3E%3Crect x='97' y='4' width='6' height='4' fill='%23ffffff'/%3E%3Crect x='102' y='6' width='5' height='2' fill='%23ffffff'/%3E%3Crect x='88' y='10' width='20' height='1' fill='%23dbe7ee'/%3E%3C/svg%3E");
-    --mc-hill: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 9' shape-rendering='crispEdges'%3E%3Crect x='0' y='6' width='48' height='3' fill='%23000'/%3E%3Crect x='4' y='5' width='10' height='1' fill='%23000'/%3E%3Crect x='6' y='4' width='6' height='1' fill='%23000'/%3E%3Crect x='8' y='3' width='2' height='1' fill='%23000'/%3E%3Crect x='22' y='5' width='14' height='1' fill='%23000'/%3E%3Crect x='25' y='4' width='8' height='1' fill='%23000'/%3E%3Crect x='27' y='3' width='4' height='1' fill='%23000'/%3E%3Crect x='18' y='4' width='1' height='2' fill='%23000'/%3E%3Crect x='17' y='2' width='3' height='2' fill='%23000'/%3E%3Crect x='40' y='4' width='1' height='2' fill='%23000'/%3E%3Crect x='39' y='2' width='3' height='2' fill='%23000'/%3E%3Crect x='10' y='0' width='1' height='3' fill='%23000'/%3E%3Crect x='9' y='0' width='3' height='1' fill='%23000'/%3E%3C/svg%3E");
-    background-image:
-        var(--mc-speckle),
-        linear-gradient(45deg, var(--mc-tint-soft) 25%, transparent 25%, transparent 75%, var(--mc-tint-soft) 75%),
-        linear-gradient(45deg, var(--mc-tint-soft) 25%, transparent 25%, transparent 75%, var(--mc-tint-soft) 75%);
-    background-size: 32px 32px, 64px 64px, 64px 64px;
-    background-position: 0 0, 0 0, 32px 32px;
-}
-/* Awan: dua lapis beda ukuran & kecepatan (parallax), berada di BELAKANG semua panel */
-body[data-theme="minecraft"]::before {
-    content: ""; position: fixed; left: 0; right: 0; top: var(--header-height, 60px); height: 200px; z-index: -1; pointer-events: none; opacity: 0.9;
-    background-image: var(--mc-cloud), var(--mc-cloud); background-repeat: repeat-x, repeat-x; background-size: 600px 150px, 900px 225px;
-    background-position: 0 24px, 150px 84px; image-rendering: pixelated;
-    animation: mc-cloud-drift 120s linear infinite;
-}
-@keyframes mc-cloud-drift { from { background-position: 0 24px, 150px 84px; } to { background-position: -600px 24px, -750px 84px; } }
-/* Bukit & pohon samar di dasar layar (ikut warna rumput palet) */
-body[data-theme="minecraft"]::after {
-    content: ""; position: fixed; left: 0; right: 0; bottom: 0; height: 90px; z-index: -1; pointer-events: none; opacity: 0.4;
-    background: var(--mc-grass-lt);
-    -webkit-mask: var(--mc-hill) left bottom / 480px 90px repeat-x; mask: var(--mc-hill) left bottom / 480px 90px repeat-x;
-}
-/* Judul halaman = papan tanda kayu */
-body[data-theme="minecraft"] .page-header h2 {
-    justify-self: start; max-width: 100%; padding: 8px 18px; color: #fff8e7; letter-spacing: 0.5px;
-    background: #b07d44; border: 3px solid #3b2614;
-    text-shadow: 2px 2px 0 #3b2614;
-    box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.25), inset 0 -3px 0 rgba(0, 0, 0, 0.25), 4px 4px 0 rgba(0, 0, 0, 0.3);
-    background-image:
-        linear-gradient(#3b2614, #3b2614), linear-gradient(#3b2614, #3b2614), linear-gradient(#3b2614, #3b2614), linear-gradient(#3b2614, #3b2614),
-        repeating-linear-gradient(180deg, transparent 0 11px, rgba(0, 0, 0, 0.12) 11px 13px);
-    background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, repeat;
-    background-size: 4px 4px, 4px 4px, 4px 4px, 4px 4px, auto;
-    background-position: 5px 5px, calc(100% - 5px) 5px, 5px calc(100% - 5px), calc(100% - 5px) calc(100% - 5px), 0 0;
-}
-body[data-theme="minecraft"] .page-header p { text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.55); margin-top: 8px; }
-@media (prefers-reduced-motion: reduce) { body[data-theme="minecraft"]::before { animation: none; } }
-
-
-/* ==========================================================
-   11. LATAR MINECRAFT — gaya "shader"
-   Lapisan tetap di belakang halaman (z-index -1): langit berlapis, matahari
-   berkilau + sinar, awan voxel, tiga lapis bukit berkabut, color grading,
-   vignette, dan grain. Panel putih tetap solid sehingga tabel tetap terbaca.
-   Hanya memakai transform & opacity untuk animasi, jadi ringan.
-   Warna per palet lewat variabel --mc-*; palet "kayu" = interior dengan obor.
-   ========================================================== */
-.mc-scene { display: none; }
-body[data-theme="minecraft"] .mc-scene { display: block; position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
-body[data-theme="minecraft"] .mc-scene > * { position: absolute; }
-
-body[data-theme="minecraft"] {
-    --mc-sky-1: #3f9be8; --mc-sky-2: #86c8f5; --mc-sky-3: #d8f0ff;
-    --mc-sun: #fff6bf; --mc-sun-ring: rgba(255, 250, 200, 0.35); --mc-sun-glow: rgba(255, 240, 160, 0.55);
-    --mc-ray: rgba(255, 255, 230, 0.16);
-    --mc-cloud-top: #ffffff; --mc-cloud-bot: #d9e6f2; --mc-cloud-op: 0.95;
-    --mc-h3a: #b4d6d0; --mc-h3b: #8cbcad;
-    --mc-h2a: #7fbf6a; --mc-h2b: #5da04a;
-    --mc-h1a: #5aa63a; --mc-h1b: #3f7a1c;
-    --mc-fog: rgba(220, 240, 255, 0.55);
-    --mc-grade: rgba(255, 240, 190, 0.10);
-    --mc-vig: 0.20;
-}
-body[data-theme="minecraft"][data-mc-palette="langit"] {
-    --mc-sky-1: #5aaaf0; --mc-sky-2: #b4daf8; --mc-sky-3: #fff0d8;
-    --mc-sun: #fff2cc; --mc-sun-ring: rgba(255, 245, 220, 0.4); --mc-sun-glow: rgba(255, 225, 170, 0.5);
-    --mc-ray: rgba(255, 255, 255, 0.18);
-    --mc-cloud-top: #ffffff; --mc-cloud-bot: #e4ecf6; --mc-cloud-op: 1;
-    --mc-h3a: #c5dcef; --mc-h3b: #a8c8e4;
-    --mc-h2a: #9cc3e3; --mc-h2b: #7aa8d2;
-    --mc-h1a: #7fb0d8; --mc-h1b: #5f93c0;
-    --mc-fog: rgba(240, 248, 255, 0.6);
-    --mc-grade: rgba(190, 220, 255, 0.10);
-}
-body[data-theme="minecraft"][data-mc-palette="pasir"] {
-    --mc-sky-1: #e8863a; --mc-sky-2: #f6b867; --mc-sky-3: #ffe2a6;
-    --mc-sun: #ffe08a; --mc-sun-ring: rgba(255, 220, 130, 0.35); --mc-sun-glow: rgba(255, 170, 60, 0.6);
-    --mc-ray: rgba(255, 230, 170, 0.20);
-    --mc-cloud-top: #fff0d6; --mc-cloud-bot: #f0cf9f; --mc-cloud-op: 0.85;
-    --mc-h3a: #e7c48c; --mc-h3b: #d9ab6a;
-    --mc-h2a: #dcae66; --mc-h2b: #c9923e;
-    --mc-h1a: #c98f40; --mc-h1b: #a8702a;
-    --mc-fog: rgba(255, 226, 170, 0.5);
-    --mc-grade: rgba(255, 170, 60, 0.14);
-    --mc-vig: 0.26;
-}
-body[data-theme="minecraft"][data-mc-palette="sakura"] {
-    --mc-sky-1: #a86fc8; --mc-sky-2: #ee9bbf; --mc-sky-3: #ffd5c4;
-    --mc-sun: #ffe3ee; --mc-sun-ring: rgba(255, 220, 235, 0.35); --mc-sun-glow: rgba(255, 140, 190, 0.55);
-    --mc-ray: rgba(255, 210, 230, 0.18);
-    --mc-cloud-top: #ffe8f1; --mc-cloud-bot: #e9b9d1; --mc-cloud-op: 0.92;
-    --mc-h3a: #d8a3c6; --mc-h3b: #b97fb0;
-    --mc-h2a: #bf7fae; --mc-h2b: #9e5f98;
-    --mc-h1a: #9d5c92; --mc-h1b: #7a3f76;
-    --mc-fog: rgba(255, 215, 235, 0.5);
-    --mc-grade: rgba(255, 120, 180, 0.10);
-}
-body[data-theme="minecraft"][data-mc-palette="kayu"] { --mc-grade: rgba(255, 150, 50, 0.14); --mc-vig: 0.40; }
-
-/* 1) Langit berlapis */
-.mc-sky { inset: 0; background: linear-gradient(180deg, var(--mc-sky-1) 0%, var(--mc-sky-2) 52%, var(--mc-sky-3) 100%); }
-
-/* 2) Matahari kotak + bloom + sinar yang berputar sangat pelan */
-.mc-sun { left: 74%; top: 12%; width: 68px; height: 68px; background: var(--mc-sun); box-shadow: 0 0 0 10px var(--mc-sun-ring), 0 0 90px 50px var(--mc-sun-glow); transform: translate3d(calc(var(--mc-px, 0) * -6px), calc(var(--mc-py, 0) * -4px), 0); transition: transform 0.6s ease-out; }
-.mc-sun2 { display: none; }
-.mc-rays {
-    left: calc(74% + 34px); top: calc(12% + 34px);
-    width: 110vmax; height: 110vmax; margin: -55vmax 0 0 -55vmax;
-    background: repeating-conic-gradient(from 0deg, var(--mc-ray) 0 3deg, transparent 3deg 15deg);
-    -webkit-mask: radial-gradient(circle, #000 0, transparent 62%);
-            mask: radial-gradient(circle, #000 0, transparent 62%);
-    animation: mc-rays 260s linear infinite;
-}
-@keyframes mc-rays { to { transform: rotate(360deg); } }
-
-/* 3) Awan voxel: bentuk blok bertangga, sisi bawah lebih gelap, melintas 85–140 dtk */
-.mc-clouds { inset: 0; transform: translate3d(calc(var(--mc-px, 0) * 10px), 0, 0); transition: transform 0.8s ease-out; }
-.mc-cloud {
-    position: absolute; left: 0; top: var(--top); width: var(--w); aspect-ratio: 2.75;
-    background: linear-gradient(var(--mc-cloud-top) 0 62%, var(--mc-cloud-bot) 62% 100%);
-    opacity: var(--mc-cloud-op);
-    clip-path: polygon(0 100%, 0 52%, 10% 52%, 10% 30%, 26% 30%, 26% 0, 62% 0, 62% 30%, 78% 30%, 78% 46%, 100% 46%, 100% 100%);
-    animation: mc-cloud var(--d) linear infinite;
-    animation-delay: var(--dl);
-    will-change: transform;
-}
-@keyframes mc-cloud { from { transform: translate3d(-300px, 0, 0); } to { transform: translate3d(calc(100vw + 300px), 0, 0); } }
-
-/* 4) Bukit berlapis: makin jauh makin pucat & berkabut, bergeser mengikuti kursor */
-.mc-hill {
-    left: -50px; right: -50px; bottom: 0;
-    transition: transform 0.7s ease-out;
-    -webkit-mask-repeat: repeat-x; mask-repeat: repeat-x;
-    -webkit-mask-position: 0 100%; mask-position: 0 100%;
-    -webkit-mask-size: 1600px 100%; mask-size: 1600px 100%;
-}
-.mc-hill-far  { height: 52vh; background: linear-gradient(180deg, var(--mc-h3a), var(--mc-h3b)); transform: translate3d(calc(var(--mc-px, 0) * -8px), 0, 0);  -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='1600'%20height='400'%20viewBox='0%200%201600%20400'%20preserveAspectRatio='none'%3E%3Cpath%20d='M0%20400%20V71%20H64%20V71%20H128%20V71%20H192%20V70%20H256%20V70%20H320%20V94%20H384%20V118%20H448%20V94%20H512%20V94%20H576%20V70%20H640%20V70%20H704%20V94%20H768%20V142%20H832%20V142%20H896%20V142%20H960%20V166%20H1024%20V210%20H1088%20V186%20H1152%20V138%20H1216%20V90%20H1280%20V138%20H1344%20V114%20H1408%20V114%20H1472%20V114%20H1536%20V71%20H1600%20V400%20Z'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='1600'%20height='400'%20viewBox='0%200%201600%20400'%20preserveAspectRatio='none'%3E%3Cpath%20d='M0%20400%20V71%20H64%20V71%20H128%20V71%20H192%20V70%20H256%20V70%20H320%20V94%20H384%20V118%20H448%20V94%20H512%20V94%20H576%20V70%20H640%20V70%20H704%20V94%20H768%20V142%20H832%20V142%20H896%20V142%20H960%20V166%20H1024%20V210%20H1088%20V186%20H1152%20V138%20H1216%20V90%20H1280%20V138%20H1344%20V114%20H1408%20V114%20H1472%20V114%20H1536%20V71%20H1600%20V400%20Z'/%3E%3C/svg%3E"); }
-.mc-hill-mid  { height: 38vh; background: linear-gradient(180deg, var(--mc-h2a), var(--mc-h2b)); transform: translate3d(calc(var(--mc-px, 0) * -18px), 0, 0); -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='1600'%20height='400'%20viewBox='0%200%201600%20400'%20preserveAspectRatio='none'%3E%3Cpath%20d='M0%20400%20V246%20H48%20V280%20H96%20V260%20H144%20V260%20H192%20V260%20H240%20V260%20H288%20V240%20H336%20V240%20H384%20V260%20H432%20V220%20H480%20V240%20H528%20V240%20H576%20V240%20H624%20V280%20H672%20V280%20H720%20V260%20H768%20V260%20H816%20V280%20H864%20V280%20H912%20V280%20H960%20V240%20H1008%20V240%20H1056%20V240%20H1104%20V280%20H1152%20V260%20H1200%20V220%20H1248%20V180%20H1296%20V180%20H1344%20V180%20H1392%20V220%20H1440%20V240%20H1488%20V280%20H1536%20V246%20H1584%20V400%20Z'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='1600'%20height='400'%20viewBox='0%200%201600%20400'%20preserveAspectRatio='none'%3E%3Cpath%20d='M0%20400%20V246%20H48%20V280%20H96%20V260%20H144%20V260%20H192%20V260%20H240%20V260%20H288%20V240%20H336%20V240%20H384%20V260%20H432%20V220%20H480%20V240%20H528%20V240%20H576%20V240%20H624%20V280%20H672%20V280%20H720%20V260%20H768%20V260%20H816%20V280%20H864%20V280%20H912%20V280%20H960%20V240%20H1008%20V240%20H1056%20V240%20H1104%20V280%20H1152%20V260%20H1200%20V220%20H1248%20V180%20H1296%20V180%20H1344%20V180%20H1392%20V220%20H1440%20V240%20H1488%20V280%20H1536%20V246%20H1584%20V400%20Z'/%3E%3C/svg%3E"); }
-.mc-hill-near { height: 25vh; background: linear-gradient(180deg, var(--mc-h1a), var(--mc-h1b)); transform: translate3d(calc(var(--mc-px, 0) * -32px), 0, 0); -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='1600'%20height='400'%20viewBox='0%200%201600%20400'%20preserveAspectRatio='none'%3E%3Cpath%20d='M0%20400%20V240%20H32%20V272%20H64%20V256%20H96%20V240%20H128%20V240%20H160%20V240%20H192%20V240%20H224%20V272%20H256%20V240%20H288%20V240%20H320%20V240%20H352%20V240%20H384%20V272%20H416%20V240%20H448%20V240%20H480%20V240%20H512%20V240%20H544%20V240%20H576%20V240%20H608%20V240%20H640%20V240%20H672%20V256%20H704%20V288%20H736%20V320%20H768%20V320%20H800%20V340%20H832%20V324%20H864%20V324%20H896%20V324%20H928%20V292%20H960%20V260%20H992%20V260%20H1024%20V244%20H1056%20V240%20H1088%20V240%20H1120%20V240%20H1152%20V240%20H1184%20V240%20H1216%20V272%20H1248%20V256%20H1280%20V240%20H1312%20V256%20H1344%20V240%20H1376%20V240%20H1408%20V272%20H1440%20V304%20H1472%20V336%20H1504%20V304%20H1536%20V288%20H1568%20V240%20H1600%20V400%20Z'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='1600'%20height='400'%20viewBox='0%200%201600%20400'%20preserveAspectRatio='none'%3E%3Cpath%20d='M0%20400%20V240%20H32%20V272%20H64%20V256%20H96%20V240%20H128%20V240%20H160%20V240%20H192%20V240%20H224%20V272%20H256%20V240%20H288%20V240%20H320%20V240%20H352%20V240%20H384%20V272%20H416%20V240%20H448%20V240%20H480%20V240%20H512%20V240%20H544%20V240%20H576%20V240%20H608%20V240%20H640%20V240%20H672%20V256%20H704%20V288%20H736%20V320%20H768%20V320%20H800%20V340%20H832%20V324%20H864%20V324%20H896%20V324%20H928%20V292%20H960%20V260%20H992%20V260%20H1024%20V244%20H1056%20V240%20H1088%20V240%20H1120%20V240%20H1152%20V240%20H1184%20V240%20H1216%20V272%20H1248%20V256%20H1280%20V240%20H1312%20V256%20H1344%20V240%20H1376%20V240%20H1408%20V272%20H1440%20V304%20H1472%20V336%20H1504%20V304%20H1536%20V288%20H1568%20V240%20H1600%20V400%20Z'/%3E%3C/svg%3E"); }
-.mc-fog { left: 0; right: 0; bottom: 0; height: 42vh; background: linear-gradient(0deg, var(--mc-fog) 0%, transparent 100%); }
-
-/* 5) Pasca-proses: color grading, vignette, grain film */
-.mc-grade { inset: 0; background: var(--mc-grade); mix-blend-mode: soft-light; }
-.mc-vignette { inset: 0; background: radial-gradient(ellipse 120% 100% at 50% 42%, transparent 55%, rgba(0, 0, 0, var(--mc-vig, 0.2)) 100%); }
-.mc-grain { inset: 0; opacity: 0.07; mix-blend-mode: overlay; background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='160'%20height='160'%3E%3Cfilter%20id='n'%3E%3CfeTurbulence%20type='fractalNoise'%20baseFrequency='.9'%20numOctaves='2'%20stitchTiles='stitch'/%3E%3C/filter%3E%3Crect%20width='100%25'%20height='100%25'%20filter='url(%23n)'/%3E%3C/svg%3E"); background-size: 160px 160px; }
-
-/* Palet Kayu: interior kayu hangat dengan dua obor yang berkedip */
-body[data-theme="minecraft"][data-mc-palette="kayu"] .mc-sky {
-    background:
-        repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.22) 0 3px, transparent 3px 72px),
-        repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.14) 0 3px, transparent 3px 288px),
-        linear-gradient(180deg, #8a6540 0%, #5a3e22 100%);
-}
-body[data-theme="minecraft"][data-mc-palette="kayu"] :is(.mc-clouds, .mc-hill, .mc-fog, .mc-rays) { display: none; }
-body[data-theme="minecraft"][data-mc-palette="kayu"] .mc-sun,
-body[data-theme="minecraft"][data-mc-palette="kayu"] .mc-sun2 {
-    display: block; left: 9%; top: 34%; width: 28px; height: 44px;
-    background: linear-gradient(#ffe14a 0 35%, #ff9f1c 35% 70%, #e0561a 70%);
-    box-shadow: 0 0 0 6px rgba(255, 170, 60, 0.18), 0 0 120px 70px rgba(255, 150, 40, 0.40);
-    animation: mc-flicker 2.6s steps(1) infinite;
-}
-body[data-theme="minecraft"][data-mc-palette="kayu"] .mc-sun2 { left: 88%; animation-delay: -1.1s; }
-body[data-theme="minecraft"][data-mc-palette="kayu"] :is(.mc-sun, .mc-sun2)::after { content: ""; position: absolute; left: 8px; top: 100%; width: 12px; height: 60px; background: #6b4a2b; box-shadow: inset -3px 0 #4a3320; }
-@keyframes mc-flicker { 0% { opacity: 1; } 18% { opacity: 0.86; } 36% { opacity: 0.96; } 55% { opacity: 0.8; } 78% { opacity: 0.93; } 100% { opacity: 1; } }
-
-/* Awan & bukit datar lama (body::before/::after) digantikan lapisan scene di atas */
-body[data-theme="minecraft"]::before, body[data-theme="minecraft"]::after { display: none; }
-
-/* Halaman login: biarkan latar terlihat */
-body[data-theme="minecraft"] .login-page { background: none; }
-/* Judul halaman di atas langit tetap terbaca */
-body[data-theme="minecraft"] .page-header p { color: #101010; }
-
-/* Ringankan di HP; matikan gerak untuk "kurangi gerakan" */
-@media (max-width: 768px) {
-    .mc-rays, .mc-grain { display: none; }
-    .mc-cloud:nth-child(n+4) { display: none; }
-    .mc-hill-far { height: 40vh; }
-}
-@media (prefers-reduced-motion: reduce) {
-    .mc-scene *, .mc-scene *::before, .mc-scene *::after { animation: none !important; transition: none !important; }
-}

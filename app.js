@@ -404,94 +404,12 @@ function handleGlobalSearch(event) {
 window.handleGlobalSearch = handleGlobalSearch;
 
 // ==========================================
-// TEMA TAMPILAN — 5 pilihan: light (Terang) · reference (Referensi) · dark (Gelap netral) · cartoon (Neoabstrak, garis tebal + bayangan keras) · minecraft (blok kotak-kotak)
-// Tema cartoon punya 6 palet warna (data-palette): kuning · pink · mint · lavender · oranye · gelap (Malam)
-// Tema minecraft punya 5 palet warna (data-mc-palette): rumput · langit · pasir · sakura · kayu
+// TEMA TAMPILAN — 5 pilihan: light (Terang) · reference (Referensi) · dark (Gelap netral)
+//   · biru (palet biru #03195b → #cbe9fd, terang) · hijau (palet hijau #051F20 → #DAF1DE, gelap)
 // ==========================================
-const THEMES = ['light', 'reference', 'dark', 'cartoon', 'minecraft'];
-const DARK_THEMES = ['dark'];
-const CARTOON_PALETTES = ['kuning', 'pink', 'mint', 'lavender', 'oranye', 'gelap'];
-const PALETTE_NAMES = { kuning: 'Kuning', pink: 'Pink', mint: 'Mint', lavender: 'Lavender', oranye: 'Oranye', gelap: 'Malam' };
-const MC_PALETTES = ['rumput', 'langit', 'pasir', 'sakura', 'kayu'];
-const MC_PALETTE_NAMES = { rumput: 'Rumput', langit: 'Langit', pasir: 'Pasir', sakura: 'Sakura', kayu: 'Kayu' };
+const THEMES = ['light', 'reference', 'dark', 'biru', 'hijau'];
+const DARK_THEMES = ['dark', 'hijau'];
 let _loginThemePicked = false; // tema harus dipilih eksplisit setiap kali login
-
-// ---- Karakter & lanskap Minecraft di dalam tabel/diagram — CSS: bagian 11 styles.css ----
-function critterLane(mode, n) {
-    const S = (id, vb, cls, style) => '<span class="crit ' + cls + '" style="' + style + '"><svg class="stk stk-mc" viewBox="' + vb + '"><use href="#' + id + '"/></svg></span>';
-    const TREE = ['mc-tree', '0 0 12 12'], HOUSE = ['mc-house', '0 0 16 14'], BIRD = ['mc-bird', '0 0 8 4'];
-    const GOLEM = ['mc-golem', '0 0 14 16'], ZOMBIE = ['mc-zombie', '0 0 12 16'], DOLPHIN = ['mc-dolphin', '0 0 16 8'], FISH = ['mc-fish', '0 0 8 5'];
-    const ENDER = ['mc-enderman', '0 0 6 20'], PILLAR = ['mc-pillar', '0 0 6 16'];
-    const P = (base, mod, step) => base + ((n * step) % mod);
-    const bird = (y, dur, d) => S(BIRD[0], BIRD[1], 'fly', '--y:' + y + 'px;--dur:' + dur + 's;--delay:-' + d + 's');
-    let html = '';
-    if (mode === 'ocean') {
-        html = bird(6, 30, (n * 3) % 20)
-            + S(DOLPHIN[0], DOLPHIN[1], 'jump crit-dolphin', '--dur:20s;--arc:6s;--delay:-4s;--pk:-40px')
-            + S(DOLPHIN[0], DOLPHIN[1], 'jump crit-dolphin', '--dur:26s;--arc:8s;--delay:-15s;--pk:-44px')
-            + S(FISH[0], FISH[1], 'jump crit-fish', '--dur:12s;--arc:3.6s;--delay:-2s;--pk:-34px')
-            + S(FISH[0], FISH[1], 'jump crit-fish', '--dur:16s;--arc:4.4s;--delay:-9s;--pk:-38px')
-            + S(FISH[0], FISH[1], 'jump crit-fish', '--dur:14s;--arc:3.2s;--delay:-12s;--pk:-30px');
-    } else if (mode === 'end') {
-        // The End (latar putih): pilar obsidian + kristal, enderman ngeblink, naga mondar-mandir & menyemburkan api
-        html = S(PILLAR[0], PILLAR[1], 'crit-pillar', '--x:' + P(6, 8, 5) + '%')
-            + S(PILLAR[0], PILLAR[1], 'crit-pillar', '--x:' + P(46, 8, 3) + '%')
-            + S(PILLAR[0], PILLAR[1], 'crit-pillar', '--x:' + P(84, 6, 7) + '%')
-            + S(ENDER[0], ENDER[1], 'tp crit-enderman', '--x:20%;--x1:20%;--x2:30%;--x3:66%;--dur:9s;--delay:0s')
-            + S(ENDER[0], ENDER[1], 'tp crit-enderman', '--x:72%;--x1:72%;--x2:36%;--x3:24%;--dur:11s;--delay:-4s')
-            + '<span class="crit pace" style="--dur:22s;--delay:-' + ((n * 4) % 12) + 's"><i class="dragon-body crit-dragon">'
-            + '<svg class="stk stk-mc" viewBox="0 0 24 13"><use href="#mc-dragon-a"/></svg>'
-            + '<svg class="stk stk-mc" viewBox="0 0 24 13"><use href="#mc-dragon-b"/></svg>'
-            + '<svg class="dragon-fire" viewBox="0 0 14 6"><use href="#mc-flame"/></svg></i></span>';
-    } else {
-        html = S(TREE[0], TREE[1], 'crit-tree', '--x:' + P(3, 8, 7) + '%')
-            + S(HOUSE[0], HOUSE[1], 'crit-house', '--x:' + P(32, 14, 5) + '%')
-            + S(TREE[0], TREE[1], 'crit-tree sm', '--x:' + P(60, 8, 3) + '%')
-            + S(TREE[0], TREE[1], 'crit-tree', '--x:' + P(82, 8, 11) + '%')
-            + bird(6, 24, (n * 5) % 20) + bird(16, 34, 8 + ((n * 3) % 20));
-        if (mode === 'walk') {
-            html += S(GOLEM[0], GOLEM[1], 'walk', '--dur:34s;--delay:-6s') + S(ZOMBIE[0], ZOMBIE[1], 'walk', '--dur:26s;--delay:-15s');
-        } else if (mode === 'peek') {
-            html += S(GOLEM[0], GOLEM[1], 'peek', '--x:19%;--delay:0s') + S(ZOMBIE[0], ZOMBIE[1], 'peek', '--x:72%;--delay:-3s');
-        }
-    }
-    const el = document.createElement('div');
-    el.className = 'critter-lane' + (mode === 'ocean' ? ' ocean' : '') + (mode === 'end' ? ' end' : '');
-    el.setAttribute('aria-hidden', 'true');
-    el.innerHTML = html;
-    return el;
-}
-function initCritterLanes() {
-    if (document.querySelector('.critter-lane')) return;
-    let n = 0;
-    document.querySelectorAll('.page-view').forEach(function (pv) {
-        // Diagram: yang punya .chart-box = lanskap hutan/desa · yang donut (Komposisi Kas/Arus Kas) = biome air
-        pv.querySelectorAll('.chart-card').forEach(function (card) {
-            if (card.querySelector('.chart-box')) card.appendChild(critterLane('land', n++));
-            else if (card.querySelector('.donut-wrap')) { card.classList.add('has-ocean'); card.appendChild(critterLane('ocean', n++)); }
-        });
-        // Tabel: dashboard = biome naga (The End) · halaman Transaksi (tabel besar paling bawah) = biome laut
-        // · tabel lebar lain = golem & zombi nongol · tabel sempit (laporan/arsip/rekap) = lanskap saja
-        pv.querySelectorAll('.table-card').forEach(function (card) {
-            let mode = 'land';
-            if (pv.id === 'page-transaksi') { mode = 'ocean'; card.classList.add('has-ocean'); }
-            else if (pv.id === 'page-dashboard') { mode = 'end'; card.classList.add('has-end'); }
-            else if (!card.style.maxWidth) mode = 'peek';
-            card.appendChild(critterLane(mode, n++));
-        });
-    });
-}
-// Creeper yang meledak di popup pengingat (tampil hanya di tema Minecraft)
-const BOOM_DIRS = [[-70, -20], [-58, -44], [-36, -62], [-14, -74], [10, -70], [34, -60], [56, -42], [72, -18], [-48, -8], [50, -6], [-24, -34], [26, -30], [0, -46], [-4, -16]];
-const BOOM_COLORS = ['#ff3b1f', '#ff9f1c', '#ffe14a', '#2b2b2b', '#ffffff', '#5fb04a'];
-function ckBoomHtml() {
-    const parts = BOOM_DIRS.map(function (d, i) {
-        const s = [10, 14, 8][i % 3];
-        return '<i class="boom-p" style="--dx:' + d[0] + 'px;--dy:' + d[1] + 'px;width:' + s + 'px;height:' + s + 'px;background:' + BOOM_COLORS[i % 6] + '"></i>';
-    }).join('');
-    const smoke = [-24, 0, 24].map(function (dx) { return '<i class="boom-s" style="--dx:' + dx + 'px"></i>'; }).join('');
-    return '<div class="ck-toast-boom" aria-hidden="true"><i class="boom-flash"></i><span class="boom-creeper"><svg viewBox="0 0 12 16"><use href="#mc-creeper"/></svg></span>' + smoke + parts + '<b class="boom-text">BOOM!</b></div>';
-}
 
 function applyTheme(themeName) {
     if (THEMES.indexOf(themeName) === -1) themeName = 'light';
@@ -505,48 +423,7 @@ function applyTheme(themeName) {
     syncThemeExtras();
 }
 
-function applyPalette(name) {
-    if (CARTOON_PALETTES.indexOf(name) === -1) name = 'kuning';
-    document.body.setAttribute('data-palette', name);
-    try { localStorage.setItem('cashflow_palette', name); } catch (e) { /* abaikan */ }
-    document.querySelectorAll('.palette-option[data-palette-value]').forEach(function (btn) {
-        const on = btn.dataset.paletteValue === name;
-        btn.classList.toggle('active', on);
-        btn.setAttribute('aria-checked', on ? 'true' : 'false');
-    });
-    ['login-palette-name', 'menu-palette-name'].forEach(function (id) {
-        const el = document.getElementById(id);
-        if (el) el.textContent = PALETTE_NAMES[name];
-    });
-}
-
-function setPalette(name) {
-    applyPalette(name);
-    if (typeof refreshChartsTheme === 'function') refreshChartsTheme();
-}
-
-// Palet warna tema Minecraft (atribut data-mc-palette, terpisah dari palet Neoabstrak)
-function applyMcPalette(name) {
-    if (MC_PALETTES.indexOf(name) === -1) name = 'rumput';
-    document.body.setAttribute('data-mc-palette', name);
-    try { localStorage.setItem('cashflow_mc_palette', name); } catch (e) { /* abaikan */ }
-    document.querySelectorAll('.palette-option[data-mc-palette-value]').forEach(function (btn) {
-        const on = btn.dataset.mcPaletteValue === name;
-        btn.classList.toggle('active', on);
-        btn.setAttribute('aria-checked', on ? 'true' : 'false');
-    });
-    ['login-mc-palette-name', 'menu-mc-palette-name'].forEach(function (id) {
-        const el = document.getElementById(id);
-        if (el) el.textContent = MC_PALETTE_NAMES[name];
-    });
-}
-
-function setMcPalette(name) {
-    applyMcPalette(name);
-    if (typeof refreshChartsTheme === 'function') refreshChartsTheme();
-}
-
-// Sinkronkan UI pemilih tema di login + baris palet (hanya tampil untuk tema Neoabstrak)
+// Sinkronkan UI pemilih tema di halaman login
 function syncThemeExtras() {
     const current = document.body.getAttribute('data-theme');
     document.querySelectorAll('.login-theme-card').forEach(function (btn) {
@@ -554,14 +431,6 @@ function syncThemeExtras() {
         btn.classList.toggle('active', on);
         btn.setAttribute('aria-checked', on ? 'true' : 'false');
     });
-    const loginPal = document.getElementById('login-palette');
-    if (loginPal) loginPal.hidden = !(_loginThemePicked && current === 'cartoon');
-    const menuPal = document.getElementById('theme-menu-palette');
-    if (menuPal) menuPal.hidden = current !== 'cartoon';
-    const loginMcPal = document.getElementById('login-mc-palette');
-    if (loginMcPal) loginMcPal.hidden = !(_loginThemePicked && current === 'minecraft');
-    const menuMcPal = document.getElementById('theme-menu-mc-palette');
-    if (menuMcPal) menuMcPal.hidden = current !== 'minecraft';
 }
 
 // Dipanggil saat user memilih tema di halaman login
@@ -615,13 +484,9 @@ function initTheme() {
     let saved = 'light';
     try { saved = localStorage.getItem('cashflow_theme') || 'light'; } catch (e) { /* abaikan */ }
     if (saved === 'dark-glass') saved = 'dark'; // migrasi nama tema lama
-    if (saved === 'midnight' || saved === 'crystal') saved = 'cartoon'; // tema navy/kristal lama diganti Kartun
-    let savedPalette = 'kuning';
-    try { savedPalette = localStorage.getItem('cashflow_palette') || 'kuning'; } catch (e) { /* abaikan */ }
-    applyPalette(savedPalette);
-    let savedMcPalette = 'rumput';
-    try { savedMcPalette = localStorage.getItem('cashflow_mc_palette') || 'rumput'; } catch (e) { /* abaikan */ }
-    applyMcPalette(savedMcPalette);
+    if (saved === 'cartoon') saved = 'biru';      // tema Neoabstrak dihapus -> Biru
+    if (saved === 'minecraft') saved = 'hijau';   // tema Minecraft dihapus -> Hijau
+    if (saved === 'midnight' || saved === 'crystal') saved = 'biru';
     applyTheme(saved);
 }
 
@@ -935,7 +800,7 @@ function renderRekapBank() {
     endDate.setHours(23, 59, 59, 999);
 
     const dalamPeriode = paid.filter(item => {
-        const d = parseToDateObj(getValueByKeys(item, ["tanggalBayar", "Tanggal Bayar", "Tanggal Pembayaran"]));
+        const d = getTanggalBayarAktual(item);
         return d && d >= startDate && d <= endDate;
     });
 
@@ -1027,6 +892,24 @@ async function salinRekapBankKeWA() {
 
 const NAMA_BULAN_PANJANG = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
 const KEYS_TGL_BAYAR = ["tanggalBayar", "Tanggal Bayar", "Tanggal Pembayaran", "TGL_BAYAR", "Tgl Bayar", "TGL BAYAR"];
+
+// Kunci kolom tanggal bayar yang dikenali Laporan Harian & Rekap Bank.
+// = KEYS_TGL_BAYAR + "tgl" (kolom "tgl" juga dipakai Antrean Validasi). Sebelumnya laporan hanya membaca 3 nama kolom,
+// padahal daftar "sudah bayar" (getPaidMasterEntries) memakai 6 nama. Akibatnya pembayaran yang tanggalnya ada di
+// kolom lain (mis. "Tgl Bayar"/"tgl") lolos ke daftar bayar tetapi DIBUANG saat difilter per tanggal -> tidak tercatat.
+const KEYS_TGL_BAYAR_LAPORAN = [...KEYS_TGL_BAYAR, "tgl", "Tgl", "TGL"];
+
+// Tanggal bayar sebuah baris pelanggan (Date lokal, jam 00:00) atau null bila kosong / tidak terbaca.
+// Format ambigu (5/9 vs 9/5) dibaca dengan acuan jatuh tempo, sama seperti dashboard Cashflow.
+function getTanggalBayarAktual(item) {
+    const raw = getValueByKeys(item, KEYS_TGL_BAYAR_LAPORAN);
+    if (!raw || raw === "-" || raw === "undefined" || raw === "null") return null;
+    try {
+        const t = getTanggalPeriodeCashflow(item);
+        if (t && t.paid && !isNaN(t.paid.getTime())) return t.paid;
+    } catch (e) { /* jatuh ke pembaca tanggal biasa di bawah */ }
+    return parseToDateObj(raw);
+}
 
 // Menentukan BULAN sebuah pembayaran untuk dashboard Cashflow.
 //  - Bayar LEBIH AWAL dari jatuh tempo (mis. tempo 1 Okt, bayar 29 Sep) -> ikut bulan jatuh tempo (Okt),
@@ -1309,7 +1192,7 @@ function hitungRekapBankUntukTanggal(selectedDate) {
     const end = new Date(selectedDate); end.setHours(23, 59, 59, 999);
 
     const dalamPeriode = paid.filter(item => {
-        const d = parseToDateObj(getValueByKeys(item, ["tanggalBayar", "Tanggal Bayar", "Tanggal Pembayaran"]));
+        const d = getTanggalBayarAktual(item);
         return d && d >= start && d <= end;
     });
 
@@ -1920,14 +1803,13 @@ function hexToRgba(hex, alpha) {
     return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + alpha + ')';
 }
 
-// Radius sudut batang grafik: 0 (kotak) pada tema Minecraft
+// Radius sudut batang grafik (sama untuk semua tema)
 function chartRadius(r) {
-    return document.body.getAttribute('data-theme') === 'minecraft' ? 0 : r;
+    return r;
 }
 
 function getChartThemeColors() {
-    const isDark = DARK_THEMES.indexOf(document.body.getAttribute('data-theme')) !== -1
-        || (document.body.getAttribute('data-theme') === 'cartoon' && document.body.getAttribute('data-palette') === 'gelap');
+    const isDark = DARK_THEMES.indexOf(document.body.getAttribute('data-theme')) !== -1;
     const c1 = cssVar('--chart-1', '#6c63ff');
     const c1Soft = cssVar('--chart-1-soft', '#c9c5ff');
     const c2 = cssVar('--chart-2', '#86d9a5');
@@ -1957,7 +1839,7 @@ function getChartThemeColors() {
         in2C: cssVar('--chart-in-2', c2),
         outC: cssVar('--chart-out', cssVar('--danger', '#ef4444')),
         empty: cssVar('--chart-empty', '#eceef2'),
-        // Garis tepi batang/donut (tema Kartun); tema lain: 0 = tanpa garis
+        // Garis tepi batang/donut (opsional lewat token --chart-outline); default: tanpa garis
         outline: cssVar('--chart-outline', 'transparent'),
         outlineW: parseFloat(cssVar('--chart-outline-w', '0')) || 0
     };
@@ -3417,12 +3299,16 @@ function renderLaporanKetepatan() {
 
         // 4. Evaluasi Ketepatan Waktu
         let evalRes = { isTelat: false, statusText: "Belum Bayar", daysDiff: 0, keterangan: "Menunggu Pembayaran" };
+        let tglBayarTampil = tglBayar;
         
         if (isPaid) {
-            const jatuhTempoResolved = resolveDueDateStringForEval(item, tglBayar) || jatuhTempoRaw;
-            evalRes = typeof evalKetepatanPembayaran === "function" 
-                ? evalKetepatanPembayaran(jatuhTempoResolved, tglBayar, metode) 
-                : { isTelat: false, statusText: "Lunas", keterangan: "Sudah Bayar" };
+            if (typeof evalKetepatanPembayaran === "function") {
+                const hasilEval = evalKetepatanItem(item, tglBayar, metode, jatuhTempoRaw);
+                evalRes = hasilEval.evalRes;
+                tglBayarTampil = hasilEval.tglTampil;
+            } else {
+                evalRes = { isTelat: false, statusText: "Lunas", keterangan: "Sudah Bayar" };
+            }
                 
             if (evalRes.isTelat) {
                 countTelat++;
@@ -3444,7 +3330,7 @@ function renderLaporanKetepatan() {
             nama: namaPelanggan,
             area: areaSheet,
             jatuhTempo: jatuhTempoStr || "-",
-            tanggalBayar: isPaid ? tglBayar : "-",
+            tanggalBayar: isPaid ? tglBayarTampil : "-",
             nominal: nominalClean,
             isPaid: isPaid,
             eval: evalRes
@@ -3877,6 +3763,63 @@ function getJatuhTempoDate(item, refYear) {
 // tertukar tanggal/bulannya (tempo tgl 1 Oktober dulu terbaca 10 Januari).
 // Tahun dipilih (tahun bayar -1 / 0 / +1) yang jatuh temponya paling dekat dengan tanggal bayar,
 // jadi periode Desember yang dibayar Januari, atau periode Januari yang dibayar Desember, tetap benar.
+// Baca tanggal bayar & jatuh tempo SEKALIGUS sebagai satu pasangan.
+// Masalah sebelumnya (lingkaran): tanggal bayar ambigu "10/01/2026" dibaca dulu sebagai 10 Januari (DD/MM),
+// tahun jatuh tempo lalu ditebak dari tanggal itu (Okt 2025), kemudian tanggal bayar "dikunci" memakai jatuh tempo
+// yang sudah salah tadi -> bayar 1 Okt 2026 (MM/DD) tetap dibaca 10 Jan 2026 dan dihitung telat 101 hari.
+// Sekarang: coba KEDUA tafsiran tanggal bayar (DD/MM dan MM/DD) x kandidat tahun jatuh tempo, lalu pilih
+// pasangan yang paling dekat jaraknya. Mengembalikan { paid, due } (Date) atau null bila tidak bisa ditentukan
+// (mis. periode kosong -> due null, dan pemanggil memakai logika lama).
+function resolvePasanganBayarTempo(item, tglBayarRaw) {
+    const raw = String(tglBayarRaw === undefined || tglBayarRaw === null ? "" : tglBayarRaw).trim();
+    if (raw === "" || raw === "-" || raw === "undefined" || raw === "null") return { paid: null, due: null };
+
+    const mk = (yy, mo, dd) => {
+        const dt = new Date(yy, mo - 1, dd);
+        return (dt.getFullYear() === yy && dt.getMonth() === mo - 1 && dt.getDate() === dd) ? dt : null;
+    };
+    const kandidatBayar = [];
+    const m = raw.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4}|\d{2})(?!\d)/);
+    if (m) {
+        const p1 = parseInt(m[1], 10), p2 = parseInt(m[2], 10);
+        let y = parseInt(m[3], 10);
+        if (m[3].length === 2) y += 2000;
+        const dmy = mk(y, p2, p1), mdy = mk(y, p1, p2);
+        if (dmy) kandidatBayar.push(dmy);
+        if (mdy && p1 !== p2) kandidatBayar.push(mdy);
+    } else {
+        const one = parseToDateObj(raw);
+        if (one && !isNaN(one.getTime())) kandidatBayar.push(new Date(one.getFullYear(), one.getMonth(), one.getDate()));
+    }
+    if (kandidatBayar.length === 0) return { paid: null, due: null };
+
+    const tahunUji = new Set();
+    kandidatBayar.forEach(p => [p.getFullYear() - 1, p.getFullYear(), p.getFullYear() + 1].forEach(t => tahunUji.add(t)));
+
+    let paid = kandidatBayar[0], due = null, jarak = Infinity;
+    kandidatBayar.forEach(p => tahunUji.forEach(t => {
+        const dd = getJatuhTempoDate(item, t);
+        if (!dd || isNaN(dd.getTime())) return;
+        const sc = Math.abs(p - dd);
+        if (sc < jarak) { jarak = sc; paid = p; due = dd; }
+    }));
+    return { paid, due };
+}
+
+// Evaluasi ketepatan 1 baris pelanggan (dipakai tabel Ketepatan Bayar).
+// tglTampil = tanggal bayar yang sudah dibaca benar (format YYYY-MM-DD) agar kolom tanggal di tabel konsisten dengan statusnya.
+function evalKetepatanItem(item, tglBayar, metode, jatuhTempoRaw) {
+    const pasangan = resolvePasanganBayarTempo(item, tglBayar);
+    const jatuhTempoResolved = pasangan.due || resolveDueDateStringForEval(item, tglBayar) || jatuhTempoRaw;
+    const evalRes = evalKetepatanPembayaran(jatuhTempoResolved, pasangan.paid || tglBayar, metode);
+    let tglTampil = tglBayar;
+    if (pasangan.paid) {
+        const p = pasangan.paid;
+        tglTampil = `${p.getFullYear()}-${String(p.getMonth() + 1).padStart(2, '0')}-${String(p.getDate()).padStart(2, '0')}`;
+    }
+    return { evalRes, tglTampil };
+}
+
 function resolveDueDateStringForEval(item, tglBayarStr) {
     if (typeof getJatuhTempoDate !== "function") return null;
     const paidDate = parseToDateObj(tglBayarStr);
@@ -4457,8 +4400,6 @@ window.handleParentMenuClick = handleParentMenuClick;
 window.cycleTheme = cycleTheme;
 window.setTheme = setTheme;
 window.pickLoginTheme = pickLoginTheme;
-window.setPalette = setPalette;
-window.setMcPalette = setMcPalette;
 window.toggleThemeMenu = toggleThemeMenu;
 
 
@@ -4527,7 +4468,7 @@ function ckShowToast(alerts) {
                 '<span class="ck-toast-title">' + alerts.length + ' pengingat jatuh tempo</span>' +
                 '<button type="button" class="ck-toast-close" aria-label="Tutup pengingat">&times;</button>' +
             '</div>' +
-            '<div class="ck-toast-list">' + rows + '</div>' + more + ckBoomHtml() +
+            '<div class="ck-toast-list">' + rows + '</div>' + more +
         '</div>';
 
     const toast = root.firstElementChild;
@@ -4599,33 +4540,9 @@ function initLoginLiquid() {
     paint();
 }
 
-// ==========================================
-// PARALAKS LATAR MINECRAFT: kursor menggeser bukit, awan, dan matahari sedikit.
-// Hanya menulis dua variabel CSS (--mc-px / --mc-py) lewat rAF; tidak aktif di tema lain.
-// ==========================================
-function initMcScene() {
-    const scene = document.querySelector('.mc-scene');
-    if (!scene) return;
-    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    let raf = 0, nx = 0, ny = 0;
-    window.addEventListener('pointermove', function (e) {
-        if (document.body.getAttribute('data-theme') !== 'minecraft') return;
-        nx = (e.clientX / window.innerWidth) * 2 - 1;
-        ny = (e.clientY / window.innerHeight) * 2 - 1;
-        if (raf) return;
-        raf = requestAnimationFrame(function () {
-            raf = 0;
-            scene.style.setProperty('--mc-px', nx.toFixed(3));
-            scene.style.setProperty('--mc-py', ny.toFixed(3));
-        });
-    }, { passive: true });
-}
-
 document.addEventListener("DOMContentLoaded", () => {
-    initCritterLanes();
     initTheme();
     initLoginLiquid();
-    initMcScene();
     initCeklisToast();
     try { checkSession(); } catch (e) { showLogin(); }
     initFilterTempo();
