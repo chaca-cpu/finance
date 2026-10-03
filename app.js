@@ -1001,10 +1001,43 @@ function getCashflowSelectedMonth() {
 // Satu sumber data untuk seluruh dashboard Cashflow: pemasukan (pembayaran pelanggan) dan
 // pengeluaran, dua-duanya dipotong ke bulan yang dipilih di filter (default: bulan ini).
 // Pemasukan masuk ke bulan jatuh tempo bila dibayar lebih awal (lihat getTanggalPeriodeCashflow).
+// ----------------------------------------------------------
+// PEMASUKAN KODE 002 (kasbon / piutang dll) — dari sheet Input Pemasukan (globalIn).
+// Kategori di sheet diberi kode: 001 = pemasukan biasa, 002 = kasbon dll.
+// Kode dideteksi di mana pun posisinya di teks kategori ("002", "002 - Kasbon", "Kasbon (002)", dst).
+// Dulu entri ini hanya muncul di mode Cash; sekarang ikut masuk ke Dashboard & Laporan Cashflow.
+// ----------------------------------------------------------
+const KODE_KATEGORI_KASBON = '002';
+
+function isKategoriKode002(teksKategori) {
+    return new RegExp('(^|[^0-9])' + KODE_KATEGORI_KASBON + '([^0-9]|$)').test(String(teksKategori || ''));
+}
+
+function getPemasukanKasbonEntries() {
+    const hasil = [];
+    (globalIn || []).forEach(item => {
+        const kategori = getCategory(item, 'Pemasukan');
+        if (!isKategoriKode002(kategori)) return;
+        const d = getItemDate(item);
+        if (!d || isNaN(d.getTime())) return;
+        // Utamakan kolom nominal yang eksplisit; getNominal() hanya cadangan (sudah melewati kolom kategori/kode)
+        const nominalEksplisit = cleanToNumber(getValueByKeys(item, ["Nominal", "nominal", "NOMINAL", "Jumlah", "jumlah", "JUMLAH", "Total", "total"]));
+        const nominal = nominalEksplisit > 0 ? nominalEksplisit : getNominal(item);
+        const keterangan = getValueByKeys(item, [
+            "Keterangan/Catatan", "Keterangan / Catatan", "Keterangan", "keterangan", "KETERANGAN",
+            "Catatan", "catatan", "CATATAN", "Uraian", "uraian", "Rincian", "Detail", "Deskripsi"
+        ]);
+        const tgl = item["Tanggal"] || item["tgl"] || item["TANGGAL"] || item["Tanggal Transaksi"] || "";
+        hasil.push({ d, tgl, nominal, kategori, keterangan: keterangan || "" });
+    });
+    return hasil;
+}
+
 function getCashflowDashboardData() {
     const allPaid = getPaidMasterEntries();
     const allOut = getPengeluaranCashflowEntries();
-    sesuaikanBulanCashflow(allPaid, allOut);
+    const allKasbon = getPemasukanKasbonEntries();
+    sesuaikanBulanCashflow(allPaid, allOut.concat(allKasbon));
     const { y, m } = getCashflowSelectedMonth();
     const inMonth = d => d && !isNaN(d.getTime()) && d.getFullYear() === y && (d.getMonth() + 1) === m;
 
@@ -1021,10 +1054,25 @@ function getCashflowDashboardData() {
         paid.push({ item, d: t.efektif, tgl: t.tglRaw, tglBayar: t.paid, due: t.due, dipindah: t.dipindah, nominal, metode, isCash });
     });
 
+    // Pemasukan kode 002 (kasbon dll) dari data Cash -> dihitung sebagai pemasukan tunai.
+    // Dibungkus seperti baris pembayaran pelanggan supaya grafik, tabel & daftar area ikut terisi.
+    let totalKasbon = 0, countKasbon = 0;
+    allKasbon.forEach(e => {
+        if (!inMonth(e.d)) return;
+        cash += e.nominal;
+        totalKasbon += e.nominal;
+        countKasbon++;
+        const label = e.keterangan && e.keterangan !== "-" ? e.keterangan : e.kategori;
+        paid.push({
+            item: { nama: label, area: e.kategori }, d: e.d, tgl: e.tgl, tglBayar: e.d, due: null, dipindah: false,
+            nominal: e.nominal, metode: 'Kasbon', isCash: true, isKasbon: true
+        });
+    });
+
     const keluar = allOut.filter(e => inMonth(e.d));
     const totalKeluar = keluar.reduce((sum, e) => sum + e.nominal, 0);
     const totalMasuk = cash + transfer;
-    return { y, m, paid, keluar, cash, transfer, totalMasuk, totalKeluar, saldo: totalMasuk - totalKeluar };
+    return { y, m, paid, keluar, cash, transfer, totalKasbon, countKasbon, totalMasuk, totalKeluar, saldo: totalMasuk - totalKeluar };
 }
 
 function renderCashflowDashboard() {
@@ -1032,7 +1080,7 @@ function renderCashflowDashboard() {
 
     const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
     setText('cf-stat-pemasukan', formatIDR(data.totalMasuk));
-    setText('cf-stat-pemasukan-desc', data.paid.length.toLocaleString('id-ID') + ' pembayaran' + (globalMasterSumber ? ' · ' + globalMasterSumber : ''));
+    setText('cf-stat-pemasukan-desc', (data.paid.length - data.countKasbon).toLocaleString('id-ID') + ' pembayaran' + (data.countKasbon ? ' + ' + data.countKasbon + ' kasbon (002)' : '') + (globalMasterSumber ? ' · ' + globalMasterSumber : ''));
     setText('cf-stat-pengeluaran', formatIDR(data.totalKeluar));
     setText('cf-stat-pengeluaran-desc', (!globalOutAll || globalOutAll.length === 0)
         ? 'Data Pengeluaran ALL belum termuat'
@@ -1070,7 +1118,7 @@ function renderCashflowDashboard() {
             return `
             <tr>
                 <td>${formatTanggalClean(row.tgl || "-")}</td>
-                <td><span class="badge-tag ${row.p.isCash ? 'tag-in' : 'tag-transfer'}">${escHtml(row.p.isCash ? 'Cash' : (metode !== '-' ? metode : 'Transfer'))}</span></td>
+                <td><span class="badge-tag ${row.p.isCash ? 'tag-in' : 'tag-transfer'}">${escHtml(row.p.isKasbon ? 'Kasbon' : (row.p.isCash ? 'Cash' : (metode !== '-' ? metode : 'Transfer')))}</span></td>
                 <td title="${escHtml(nama)}"><strong>${escHtml(nama)}</strong>${row.p.dipindah && row.p.due ? `<small style="display:block;font-weight:400;font-size:11px;color:var(--text-muted);">Masuk ${NAMA_BULAN_PANJANG[row.p.due.getMonth()]} (tempo ${String(row.p.due.getDate()).padStart(2, '0')}/${String(row.p.due.getMonth() + 1).padStart(2, '0')})</small>` : ''}</td>
                 <td title="${escHtml(area)}">${escHtml(area)}</td>
                 <td class="text-right amount-in"><strong>+${formatIDR(row.nominal)}</strong></td>
@@ -2985,8 +3033,13 @@ function getNominal(item) {
     
     const priorityKeys = ["nominal", "jumlah", "total", "setor", "harga", "tagihan", "kredit", "debet", "debit", "masuk", "keluar", "bayar"];
     
+    // Kolom yang BUKAN nominal dilewati. Contoh bug sebelumnya: kolom "Kategori Pemasukan" mengandung
+    // kata "masuk", sehingga kode kategori "002 - Kasbon" terbaca sebagai nominal Rp 2.
+    const skipKeyPattern = /kategori|kode|minggu|tanggal|tgl|keterangan|catatan|uraian|nama/;
+
     for (let key in item) {
         let lowerKey = key.toLowerCase().trim();
+        if (skipKeyPattern.test(lowerKey)) continue;
         for (let pKey of priorityKeys) {
             if (lowerKey.includes(pKey)) {
                 let raw = item[key];
@@ -3577,43 +3630,47 @@ function renderLaporanArchiveBulanan(bulan, tahun) {
         ? ((countBayarTepatWaktu / totalPelangganAktif) * 100).toFixed(2).replace('.', ',')
         : '0';
 
-    // ===== SUSUN TAMPILAN — format & urutan sama persis dengan Laporan Bulanan utama =====
-    let html = '';
-    html += rowMain('Bulan / Tahun', labelBulanTahun);
+    // ===== SUSUN TAMPILAN — format & urutan sama dengan Laporan Bulanan utama =====
+    ensureLaporanStyles();
+    const R = RPT;
+    const lastDayArsip = new Date(tahun, bulan, 0).getDate();
+    let html = '<div class="rpt">' + R.head('Laporan Finance Bulanan', `Periode Tanggal 1 - ${lastDayArsip} ${labelBulanTahun}`);
 
-    html += rowMain('Total Pemasukan Bulan Ini', formatRp(totalPemasukan));
-    html += rowCategory('Tagihan Rutin Pelanggan (Arsip)', formatRp(totalTagihanRutin));
+    html += R.section('Pemasukan');
+    html += R.group('Total Pemasukan Bulan Ini', formatRp(totalPemasukan));
+    html += R.item('Tagihan Rutin Pelanggan (Arsip)', formatRp(totalTagihanRutin));
 
-    html += rowMain('Total Pengeluaran Bulan Ini', formatRp(totalPengeluaran));
+    html += R.section('Pengeluaran');
+    html += R.group('Total Pengeluaran Bulan Ini', formatRp(totalPengeluaran));
     if (Object.keys(katPengeluaran).length === 0) {
-        html += rowCategory('Tidak ada rincian pengeluaran', '-');
+        html += R.item('Tidak ada rincian pengeluaran', '-');
     } else {
         for (const [kat, total] of Object.entries(katPengeluaran)) {
-            html += rowCategory(kat, formatRp(total));
+            html += R.item(kat, formatRp(total));
         }
     }
+    html += R.key('Laba / Rugi Bulan Ini', formatRp(selisih), selisih);
 
-    html += rowMain('Laba / Rugi Bulan Ini', formatRp(selisih));
-    html += rowMain('Persentase Tagihan Terbayar Tepat Waktu', totalPelangganAktif > 0 ? `${persenTepatWaktu}% ( ${countBayarTepatWaktu} dari ${totalPelangganAktif} pelanggan )` : '-');
-
-    html += rowMain('Total Piutang Belum Terbayar Akhir Bulan', countPiutangBelumBayar > 0 ? `${formatRp(totalPiutangBelumBayar)} ( ${countPiutangBelumBayar} pelanggan )` : '-');
+    html += R.section('Ketepatan Bayar & Piutang');
+    html += R.line('Persentase Tagihan Terbayar Tepat Waktu', totalPelangganAktif > 0 ? `${persenTepatWaktu}% ( ${countBayarTepatWaktu} dari ${totalPelangganAktif} pelanggan )` : '-');
+    html += R.group('Total Piutang Belum Terbayar Akhir Bulan', countPiutangBelumBayar > 0 ? `${formatRp(totalPiutangBelumBayar)} ( ${countPiutangBelumBayar} pelanggan )` : '-');
     piutangBelumBayarList.forEach(p => {
-        html += rowCategory(`${p.nama} (${p.area})`, formatRp(p.nominal));
+        html += R.item(`${p.nama} (${p.area})`, formatRp(p.nominal));
     });
 
-    html += rowMain('Total Pengeluaran Operasional', totalOperasional > 0 ? formatRp(totalOperasional) : '-');
-    for (const [label, total] of Object.entries(detailOperasional)) html += rowCategory(label, formatRp(total));
+    html += R.section('Rincian Pengeluaran');
+    html += R.group('Total Pengeluaran Operasional', totalOperasional > 0 ? formatRp(totalOperasional) : '-');
+    for (const [label, total] of Object.entries(detailOperasional)) html += R.item(label, formatRp(total));
+    html += R.group('Total Pengeluaran Gaji Karyawan', totalGajiKaryawan > 0 ? formatRp(totalGajiKaryawan) : '-');
+    for (const [label, total] of Object.entries(detailGajiKaryawan)) html += R.item(label, formatRp(total));
+    html += R.group('Total Pengeluaran Pengadaan Barang', totalPengadaanBarang > 0 ? formatRp(totalPengadaanBarang) : '-');
+    for (const [label, total] of Object.entries(detailPengadaanBarang)) html += R.item(label, formatRp(total));
 
-    html += rowMain('Total Pengeluaran Gaji Karyawan', totalGajiKaryawan > 0 ? formatRp(totalGajiKaryawan) : '-');
-    for (const [label, total] of Object.entries(detailGajiKaryawan)) html += rowCategory(label, formatRp(total));
+    html += R.section('Reimbursement');
+    html += R.group('Total Reimbursement Yang Diproses', totalReimbursement > 0 ? formatRp(totalReimbursement) : '-');
+    for (const [kat, total] of Object.entries(katReimbursement)) html += R.item(kat, formatRp(total));
 
-    html += rowMain('Total Pengeluaran Pengadaan Barang', totalPengadaanBarang > 0 ? formatRp(totalPengadaanBarang) : '-');
-    for (const [label, total] of Object.entries(detailPengadaanBarang)) html += rowCategory(label, formatRp(total));
-
-    html += rowMain('Total Reimbursement Yang Diproses', totalReimbursement > 0 ? formatRp(totalReimbursement) : '-');
-    for (const [kat, total] of Object.entries(katReimbursement)) html += rowCategory(kat, formatRp(total));
-
-    isi.innerHTML = html;
+    isi.innerHTML = html + '</div>';
 }
 
 function initFilterTempo() {
@@ -3868,6 +3925,62 @@ function resolveDueDateForLaporan(item, tahunLaporan, bulanLaporanFallback) {
     return new Date(tahunLaporan, bulanNum - 1, safeDay);
 }
 
+// ==========================================
+// TAMPILAN LAPORAN (kop surat + seksi + baris grup/item/total)
+// Dipakai Laporan Mingguan/Bulanan dan halaman Archive. Hanya mengatur TAMPILAN —
+// isi/angka laporan tetap dihitung oleh fungsi renderer masing-masing.
+// Style disuntikkan dari sini supaya tidak bergantung pada styles.css; boleh dipindah ke styles.css.
+// ==========================================
+function ensureLaporanStyles() {
+    if (document.getElementById('rpt-style')) return;
+    const st = document.createElement('style');
+    st.id = 'rpt-style';
+    st.textContent = `
+.rpt { font-size: 11.5px; line-height: 1.45; color: var(--text-primary, #202124); }
+.rpt-head { text-align: center; padding: 2px 0 10px; border-bottom: 2px solid var(--text-primary, #202124); margin-bottom: 4px; }
+.rpt-head-co { font-weight: 800; font-size: 12.5px; letter-spacing: .02em; text-transform: uppercase; }
+.rpt-head-title { font-weight: 700; margin-top: 2px; }
+.rpt-head-periode { color: var(--text-secondary, #6b7280); margin-top: 1px; }
+.rpt-section { font-weight: 800; margin: 16px 0 4px; padding-bottom: 3px; border-bottom: 1px solid var(--border-subtle, rgba(128,128,128,.35)); }
+.rpt-row { display: grid; grid-template-columns: minmax(0, 1fr) 7em 7em; column-gap: 8px; align-items: baseline; padding: 4px 6px; }
+.rpt-label { min-width: 0; overflow-wrap: anywhere; }
+.rpt-val { text-align: right; white-space: nowrap; }
+.rpt-group { background: rgba(128,128,128,.12); font-weight: 600; margin-top: 2px; }
+.rpt-group .rpt-val { grid-column: 3; }
+.rpt-item { padding-left: 20px; color: var(--text-secondary, #6b7280); }
+.rpt-item .rpt-val { grid-column: 2; }
+.rpt-line .rpt-val { grid-column: 3; font-weight: 600; }
+.rpt-key { font-weight: 800; margin-top: 8px; padding-top: 6px; padding-bottom: 6px; border-top: 1px solid var(--text-primary, #202124); border-bottom: 3px double var(--text-primary, #202124); }
+.rpt-key .rpt-val { grid-column: 3; }
+.rpt-neg .rpt-val { color: var(--danger-text, #b91c1c); }
+.rpt .rpt-row .rpt-val.rpt-wide { grid-column: 2 / span 2; white-space: normal; }
+@media print { .rpt-group { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+`;
+    document.head.appendChild(st);
+}
+
+const RPT = {
+    _row(kind, label, value, extraClass) {
+        const v = String(value === undefined || value === null ? '' : value);
+        const batas = kind === 'item' ? 14 : 16;
+        const wide = v.length > batas ? ' rpt-wide' : '';
+        return `<div class="rpt-row rpt-${kind}${extraClass ? ' ' + extraClass : ''}"><span class="rpt-label">${escHtml(label)}</span><span class="rpt-val${wide}">${escHtml(v)}</span></div>`;
+    },
+    // Kop laporan: nama perusahaan, judul, periode
+    head(judul, periode) {
+        return `<div class="rpt-head"><div class="rpt-head-co">${escHtml(NAMA_TOKO)}</div><div class="rpt-head-title">${escHtml(judul)}</div><div class="rpt-head-periode">${escHtml(periode)}</div></div>`;
+    },
+    section(judul) { return `<div class="rpt-section">${escHtml(judul)}</div>`; },
+    // Baris kelompok (berlatar abu) — nilai di kolom kanan, rincian di bawahnya
+    group(label, value) { return this._row('group', label, value); },
+    // Baris rincian (menjorok) — nilai di kolom tengah
+    item(label, value) { return this._row('item', label, value); },
+    // Baris biasa tanpa rincian
+    line(label, value) { return this._row('line', label, value); },
+    // Baris hasil akhir (Laba/Rugi, Selisih) — tebal, bergaris; merah bila negatif
+    key(label, value, angka) { return this._row('key', label, value, Number(angka) < 0 ? 'rpt-neg' : ''); }
+};
+
 function renderLaporanPeriode() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -3973,7 +4086,18 @@ function renderLaporanPeriode() {
         }
     });
 
-    const totalPemasukan = totalTagihanRutin + totalPiutangLunas;
+    // Pemasukan kode 002 (kasbon / piutang kasbon yang sudah terbayar) dari data Cash, dalam periode terpilih
+    let totalKasbonMasuk = 0, countKasbonMasuk = 0;
+    const detailKasbonMasuk = {};
+    getPemasukanKasbonEntries().forEach(e => {
+        if (!isInPeriode(e.d)) return;
+        totalKasbonMasuk += e.nominal;
+        countKasbonMasuk++;
+        const label = e.keterangan && e.keterangan !== "-" ? e.keterangan : e.kategori;
+        detailKasbonMasuk[label] = (detailKasbonMasuk[label] || 0) + e.nominal;
+    });
+
+    const totalPemasukan = totalTagihanRutin + totalPiutangLunas + totalKasbonMasuk;
 
     // ==========================================
     // 2. PENGELUARAN — dari globalOutAll (termasuk sub-rincian Tagihan Rutin & Reimbursement)
@@ -4023,6 +4147,7 @@ function renderLaporanPeriode() {
         // Rincian per-item untuk format laporan Bulanan (Operasional / Gaji Karyawan / Pengadaan Barang)
         const gabunganTeks = (category + " " + keterangan).toLowerCase();
         const labelItem = (keterangan && String(keterangan).trim() !== "" && String(keterangan).trim() !== "-") ? keterangan : category;
+
         if (gabunganTeks.includes('gaji') || gabunganTeks.includes('karyawan') || gabunganTeks.includes('payroll')) {
             totalGajiKaryawan += nominal;
             detailGajiKaryawan[labelItem] = (detailGajiKaryawan[labelItem] || 0) + nominal;
@@ -4040,101 +4165,78 @@ function renderLaporanPeriode() {
     const isBulananView = mingguVal === 'all';
 
     // ==========================================
-    // MENYUSUN BARIS LIST (gaya sama seperti Laporan Cash Harian: label — leader titik — nilai)
+    // MENYUSUN TAMPILAN LAPORAN (kop + seksi + baris grup/item) — isi & angka sama seperti sebelumnya
     // ==========================================
-    let html = '';
-
-    // Baris KOMPONEN UTAMA — bold, dengan tint latar tipis sebagai pembeda antar section
-    const rowMain = (label, value) => `
-        <div class="lap-line lap-line-main">
-            <span class="lap-label">${label}</span>
-            <span class="lap-leader"></span>
-            <span class="lap-value">${value}</span>
-        </div>`;
-
-    // Baris RINCIAN / KATEGORI — polos, sedikit indentasi
-    const rowCategory = (label, value) => `
-        <div class="lap-line lap-line-category">
-            <span class="lap-label">${label}</span>
-            <span class="lap-leader"></span>
-            <span class="lap-value">${value}</span>
-        </div>`;
+    ensureLaporanStyles();
+    const R = RPT;
+    const namaBulanTahun = `${NAMA_BULAN_PANJANG[bulan - 1]} ${tahun}`;
+    const judulKop = isBulananView ? 'Laporan Finance Bulanan' : 'Laporan Finance Mingguan';
+    const periodeKop = isBulananView
+        ? `Periode Tanggal 1 - ${lastDayOfMonth} ${namaBulanTahun}`
+        : `${periodeText.split(' / ')[0]} · Tanggal ${startDayActual} - ${endDayActual} ${namaBulanTahun}`;
+    let html = '<div class="rpt">' + R.head(judulKop, periodeKop);
 
     if (isBulananView) {
-        // ==========================================
-        // FORMAT LAPORAN BULANAN (sesuai format kantor, tata letak sama seperti mingguan)
-        // ==========================================
-        const NAMA_BULAN = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-        const labelBulanTahun = `${NAMA_BULAN[bulan - 1]} ${tahun}`;
+        const labelBulanTahun = namaBulanTahun;
 
         const persenTepatWaktu = totalPelangganAktif > 0
             ? ((countBayarTepatWaktu / totalPelangganAktif) * 100).toFixed(2).replace('.', ',')
             : '0';
 
-        // 1. Bulan / Tahun
-        html += rowMain('Bulan / Tahun', labelBulanTahun);
+        // Pemasukan
+        html += R.section('Pemasukan');
+        html += R.group('Total Pemasukan Bulan Ini', formatRp(totalPemasukan));
+        html += R.item('Tagihan Rutin Pelanggan', formatRp(totalTagihanRutin));
+        html += R.item('Tagihan Piutang Bulan Lalu', countPiutangLunas > 0 ? `${countPiutangLunas} pelanggan, total ${formatRp(totalPiutangLunas)}` : '-');
+        html += R.item('Pemasukan Kasbon / Piutang Kasbon Terbayar (002)', countKasbonMasuk > 0 ? `${countKasbonMasuk} transaksi, total ${formatRp(totalKasbonMasuk)}` : '-');
 
-        // 2. Total Pemasukan Bulan Ini + rincian (sama seperti mingguan)
-        html += rowMain('Total Pemasukan Bulan Ini', formatRp(totalPemasukan));
-        html += rowCategory('Tagihan Rutin Pelanggan', formatRp(totalTagihanRutin));
-        html += rowCategory('Tagihan Piutang Bulan Lalu', countPiutangLunas > 0 ? `${countPiutangLunas} pelanggan, total ${formatRp(totalPiutangLunas)}` : '-');
-
-        // 3. Total Pengeluaran Bulan Ini + rincian PER KATEGORI (semua kategori, sama seperti mingguan)
-        html += rowMain('Total Pengeluaran Bulan Ini', formatRp(totalPengeluaran));
+        // Pengeluaran + hasil akhir
+        html += R.section('Pengeluaran');
+        html += R.group('Total Pengeluaran Bulan Ini', formatRp(totalPengeluaran));
         if (Object.keys(katPengeluaran).length === 0) {
-            html += rowCategory('Tidak ada rincian pengeluaran', '-');
+            html += R.item('Tidak ada rincian pengeluaran', '-');
         } else {
             for (const [kat, total] of Object.entries(katPengeluaran)) {
-                html += rowCategory(kat, formatRp(total));
+                html += R.item(kat, formatRp(total));
             }
         }
+        html += R.key('Laba / Rugi Bulan Ini', formatRp(selisih), selisih);
 
-        // 4. Laba / Rugi Bulan Ini
-        html += rowMain('Laba / Rugi Bulan Ini', formatRp(selisih));
+        // Ketepatan bayar & piutang
+        html += R.section('Ketepatan Bayar & Piutang');
+        html += R.line('Persentase Tagihan Terbayar Tepat Waktu', totalPelangganAktif > 0 ? `${persenTepatWaktu}% ( ${countBayarTepatWaktu} dari ${totalPelangganAktif} pelanggan )` : '-');
+        html += R.group('Total Piutang Belum Terbayar Akhir Bulan', countPiutangBelumBayar > 0 ? `${formatRp(totalPiutangBelumBayar)} ( ${countPiutangBelumBayar} pelanggan )` : '-');
+        piutangBelumBayarList.forEach(p => {
+            html += R.item(`${p.nama} (${p.area})`, formatRp(p.nominal));
+        });
 
-        // 5. Persentase Tagihan Terbayar Tepat Waktu
-        html += rowMain('Persentase Tagihan Terbayar Tepat Waktu', totalPelangganAktif > 0 ? `${persenTepatWaktu}% ( ${countBayarTepatWaktu} dari ${totalPelangganAktif} pelanggan )` : '-');
-
-        // 6. Total Piutang Belum Terbayar Akhir Bulan + rincian nama pelanggan
-        html += rowMain('Total Piutang Belum Terbayar Akhir Bulan', countPiutangBelumBayar > 0 ? `${formatRp(totalPiutangBelumBayar)} ( ${countPiutangBelumBayar} pelanggan )` : '-');
-        if (piutangBelumBayarList.length > 0) {
-            piutangBelumBayarList.forEach(p => {
-                html += rowCategory(`${p.nama} (${p.area})`, formatRp(p.nominal));
-            });
-        }
-
-        // 7. Total Pengeluaran Operasional + rincian per item
-        html += rowMain('Total Pengeluaran Operasional', totalOperasional > 0 ? formatRp(totalOperasional) : '-');
+        // Rincian pengeluaran per jenis
+        html += R.section('Rincian Pengeluaran');
+        html += R.group('Total Pengeluaran Operasional', totalOperasional > 0 ? formatRp(totalOperasional) : '-');
         for (const [label, total] of Object.entries(detailOperasional)) {
-            html += rowCategory(label, formatRp(total));
+            html += R.item(label, formatRp(total));
         }
-
-        // 8. Total Pengeluaran Gaji Karyawan + rincian per item
-        html += rowMain('Total Pengeluaran Gaji Karyawan', totalGajiKaryawan > 0 ? formatRp(totalGajiKaryawan) : '-');
+        html += R.group('Total Pengeluaran Gaji Karyawan', totalGajiKaryawan > 0 ? formatRp(totalGajiKaryawan) : '-');
         for (const [label, total] of Object.entries(detailGajiKaryawan)) {
-            html += rowCategory(label, formatRp(total));
+            html += R.item(label, formatRp(total));
         }
-
-        // 9. Total Pengeluaran Pengadaan Barang + rincian per item
-        html += rowMain('Total Pengeluaran Pengadaan Barang', totalPengadaanBarang > 0 ? formatRp(totalPengadaanBarang) : '-');
+        html += R.group('Total Pengeluaran Pengadaan Barang', totalPengadaanBarang > 0 ? formatRp(totalPengadaanBarang) : '-');
         for (const [label, total] of Object.entries(detailPengadaanBarang)) {
-            html += rowCategory(label, formatRp(total));
+            html += R.item(label, formatRp(total));
         }
 
-        // 10. Total Reimbursement Yang Diproses + rincian per item
-        html += rowMain('Total Reimbursement Yang Diproses', totalReimbursement > 0 ? formatRp(totalReimbursement) : '-');
+        // Reimbursement
+        html += R.section('Reimbursement');
+        html += R.group('Total Reimbursement Yang Diproses', totalReimbursement > 0 ? formatRp(totalReimbursement) : '-');
         for (const [kat, total] of Object.entries(katReimbursement)) {
-            html += rowCategory(kat, formatRp(total));
+            html += R.item(kat, formatRp(total));
         }
 
-        // 11. Cashflow Akhir Bulan (Saldo) — belum ada sumber data saldo awal
-        html += rowMain('Cashflow Akhir Bulan (Saldo)', '-');
-
-        // 12. Anggaran vs Realisasi — Budget belum ada sumber data, Realisasi diisi otomatis
-        html += rowMain('Anggaran vs Realisasi', `Budget: - | Realisasi: ${formatRp(totalPengeluaran)} | Selisih: -`);
-
-        // 13. Rekomendasi / Catatan Untuk Owner — manual
-        html += rowMain('Rekomendasi / Catatan Untuk Owner', '-');
+        // Penutup (belum ada sumber data otomatis untuk saldo awal & budget)
+        html += R.section('Penutup');
+        html += R.line('Cashflow Akhir Bulan (Saldo)', '-');
+        html += R.line('Anggaran vs Realisasi', `Budget: - | Realisasi: ${formatRp(totalPengeluaran)} | Selisih: -`);
+        html += R.line('Rekomendasi / Catatan Untuk Owner', '-');
 
         const judulElB = document.getElementById('judul-laporan-periode');
         if (judulElB) judulElB.textContent = `Laporan Bulanan — ${labelBulanTahun}`;
@@ -4147,70 +4249,62 @@ function renderLaporanPeriode() {
             countPiutangBelumBayar, totalPiutangBelumBayar
         };
 
-        isi.innerHTML = html;
+        isi.innerHTML = html + '</div>';
         return;
     }
 
     // ==========================================
-    // FORMAT LAPORAN MINGGUAN (format lama, tidak diubah)
+    // TAMPILAN LAPORAN MINGGUAN
     // ==========================================
 
-    html += rowMain('Periode Laporan', periodeText);
+    // Pemasukan
+    html += R.section('Pemasukan');
+    html += R.group(`Total Pemasukan ${labelPeriode}`, formatRp(totalPemasukan));
+    html += R.item('Tagihan Rutin Pelanggan', formatRp(totalTagihanRutin));
+    html += R.item('Tagihan Piutang Minggu Lalu', `${countPiutangLunas} pelanggan, total ${formatRp(totalPiutangLunas)}`);
+    html += R.item('Pemasukan Kasbon / Piutang Kasbon Terbayar (002)', countKasbonMasuk > 0 ? `${countKasbonMasuk} transaksi, total ${formatRp(totalKasbonMasuk)}` : '-');
 
-    // 2. Total Pemasukan
-    html += rowMain(`Total Pemasukan ${labelPeriode}`, formatRp(totalPemasukan));
-    html += rowCategory('Tagihan Rutin Pelanggan', formatRp(totalTagihanRutin));
-    html += rowCategory('Tagihan Piutang Minggu Lalu', `${countPiutangLunas} pelanggan, total ${formatRp(totalPiutangLunas)}`);
-
-    // 3. Total Pengeluaran
-    html += rowMain(`Total Pengeluaran ${labelPeriode}`, formatRp(totalPengeluaran));
+    // Pengeluaran + hasil akhir
+    html += R.section('Pengeluaran');
+    html += R.group(`Total Pengeluaran ${labelPeriode}`, formatRp(totalPengeluaran));
     if (Object.keys(katPengeluaran).length === 0) {
-        html += rowCategory('Tidak ada rincian pengeluaran', 'Rp 0');
+        html += R.item('Tidak ada rincian pengeluaran', 'Rp 0');
     } else {
         for (const [kat, total] of Object.entries(katPengeluaran)) {
-            html += rowCategory(kat, formatRp(total));
+            html += R.item(kat, formatRp(total));
         }
     }
+    html += R.key('Selisih (Surplus / Defisit)', formatRp(selisih), selisih);
 
-    // 4. Selisih (Surplus / Defisit)
-    html += rowMain('Selisih (Surplus / Defisit)', formatRp(selisih));
-
-    // 5. Jumlah Pelanggan Bayar Tepat Waktu
-    html += rowMain('Jumlah Pelanggan Bayar Tepat Waktu', `${countBayarTepatWaktu} dari ${totalPelangganAktif} pelanggan aktif`);
-
-    // 6. Jumlah Piutang Belum Terbayar
-    html += rowMain('Jumlah Piutang Belum Terbayar', `${countPiutangBelumBayar} pelanggan, total ${formatRp(totalPiutangBelumBayar)}`);
-
-    // 7. Piutang > H+7 (perlu eskalasi owner) — daftar nama sebagai rincian
+    // Pelanggan & piutang
+    html += R.section('Pelanggan & Piutang');
+    html += R.line('Jumlah Pelanggan Bayar Tepat Waktu', `${countBayarTepatWaktu} dari ${totalPelangganAktif} pelanggan aktif`);
+    html += R.line('Jumlah Piutang Belum Terbayar', `${countPiutangBelumBayar} pelanggan, total ${formatRp(totalPiutangBelumBayar)}`);
     if (piutangH7List.length === 0) {
-        html += rowMain('Piutang > H+7 (perlu eskalasi owner)', '-');
+        html += R.line('Piutang > H+7 (perlu eskalasi owner)', '-');
     } else {
-        html += rowMain('Piutang > H+7 (perlu eskalasi owner)', '');
+        html += R.group('Piutang > H+7 (perlu eskalasi owner)', '');
         piutangH7List
             .sort((a, b) => b.daysOverdueToday - a.daysOverdueToday)
             .forEach(p => {
-                html += rowCategory(`${p.nama} (${p.area}) — Telat ${p.daysOverdueToday} hari`, formatRp(p.nominal));
+                html += R.item(`${p.nama} (${p.area}) — Telat ${p.daysOverdueToday} hari`, formatRp(p.nominal));
             });
     }
 
-    // 8. Tagihan Rutin Yang Dibayar Minggu Ini
-    html += rowMain('Tagihan Rutin Yang Dibayar Minggu Ini', formatRp(totalRutinDibayar));
-    if (Object.keys(katRutinDibayar).length > 0) {
-        for (const [kat, total] of Object.entries(katRutinDibayar)) {
-            html += rowCategory(kat, formatRp(total));
-        }
+    // Tagihan rutin & reimbursement
+    html += R.section('Tagihan Rutin & Reimbursement');
+    html += R.group('Tagihan Rutin Yang Dibayar Minggu Ini', formatRp(totalRutinDibayar));
+    for (const [kat, total] of Object.entries(katRutinDibayar)) {
+        html += R.item(kat, formatRp(total));
+    }
+    html += R.group('Reimbursement Yang Diproses', formatRp(totalReimbursement));
+    for (const [kat, total] of Object.entries(katReimbursement)) {
+        html += R.item(kat, formatRp(total));
     }
 
-    // 9. Reimbursement Yang Diproses
-    html += rowMain('Reimbursement Yang Diproses', formatRp(totalReimbursement));
-    if (Object.keys(katReimbursement).length > 0) {
-        for (const [kat, total] of Object.entries(katReimbursement)) {
-            html += rowCategory(kat, formatRp(total));
-        }
-    }
-
-    // 10. Catatan / Temuan Penting (belum ada sumber data otomatis)
-    html += rowMain('Catatan / Temuan Penting', '-');
+    // Catatan (belum ada sumber data otomatis)
+    html += R.section('Catatan');
+    html += R.line('Catatan / Temuan Penting', '-');
 
     const judulElM = document.getElementById('judul-laporan-periode');
     if (judulElM) judulElM.textContent = `Laporan Mingguan — ${periodeText}`;
@@ -4223,7 +4317,7 @@ function renderLaporanPeriode() {
         countPiutangBelumBayar, totalPiutangBelumBayar
     };
 
-    isi.innerHTML = html;
+    isi.innerHTML = html + '</div>';
 }
 
 // Susun ringkasan singkat Laporan Mingguan/Bulanan (tanpa rincian kategori) lalu salin ke clipboard, siap kirim ke grup WA
